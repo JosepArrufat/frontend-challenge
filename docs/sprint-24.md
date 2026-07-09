@@ -36,7 +36,7 @@ Users should be able to:
 
 - Search any city worldwide.
 - Display current weather information.
-- View hourly and 30-day forecasts.
+- View hourly and 30-day/home/leprinx/frontend-challenge/docs/sprint-24.md forecasts.
 - Save favorite cities.
 - Browse the 30-day forecast using pagination.
 
