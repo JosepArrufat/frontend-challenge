@@ -14,8 +14,8 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-family: ${({ theme }) => theme.font.sans};
     background:
-      radial-gradient(900px 520px at 12% -12%, oklch(0.62 0.2 256 / 0.18), transparent 62%),
-      radial-gradient(760px 520px at 102% 0%, oklch(0.72 0.19 52 / 0.12), transparent 58%),
+      radial-gradient(900px 520px at 12% -12%, oklch(0.62 0.2 256 / 0.1), transparent 62%),
+      radial-gradient(760px 520px at 102% 0%, oklch(0.72 0.19 52 / 0.07), transparent 58%),
       ${({ theme }) => theme.color.background};
     color: ${({ theme }) => theme.color.foreground};
     line-height: 1.5;

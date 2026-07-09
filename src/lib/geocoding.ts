@@ -2,7 +2,7 @@ import { fetchJson } from './api'
 import { GEOCODING_URL, SEARCH_RESULTS_COUNT, MIN_SEARCH_LENGTH } from '../constants'
 import type { City, GeocodingResponse } from '../types'
 
-export async function searchCities(name: string): Promise<City[]> {
+export async function searchCities(name: string, signal?: AbortSignal): Promise<City[]> {
   const trimmed = name.trim()
   if (trimmed.length < MIN_SEARCH_LENGTH) return []
 
@@ -13,7 +13,9 @@ export async function searchCities(name: string): Promise<City[]> {
     format: 'json',
   })
 
-  const data = await fetchJson<GeocodingResponse>(`${GEOCODING_URL}?${params.toString()}`)
+  const data = await fetchJson<GeocodingResponse>(`${GEOCODING_URL}?${params.toString()}`, {
+    signal,
+  })
   return (data.results ?? []).map((r) => ({
     id: r.id,
     name: r.name,
