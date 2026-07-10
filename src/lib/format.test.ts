@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   roundTemp,
-  formatTemperature,
+  convertTemp,
+  formatTemp,
   formatHour,
   formatDayShort,
   formatDayName,
@@ -22,10 +23,27 @@ describe('format', () => {
     })
   })
 
-  describe('formatTemperature', () => {
-    it('appends a degree symbol', () => {
-      expect(formatTemperature(22.4)).toBe('22°')
-      expect(formatTemperature(22.45, 1)).toBe('22.5°')
+  describe('convertTemp', () => {
+    it('returns the value unchanged for celsius', () => {
+      expect(convertTemp(20, 'celsius')).toBe(20)
+    })
+
+    it('converts celsius to fahrenheit', () => {
+      expect(convertTemp(0, 'fahrenheit')).toBe(32)
+      expect(convertTemp(100, 'fahrenheit')).toBe(212)
+      expect(convertTemp(20, 'fahrenheit')).toBe(68)
+    })
+  })
+
+  describe('formatTemp', () => {
+    it('formats celsius with a degree symbol', () => {
+      expect(formatTemp(22.4, 'celsius')).toBe('22°')
+      expect(formatTemp(22.45, 'celsius', 1)).toBe('22.5°')
+    })
+
+    it('formats fahrenheit with a degree symbol', () => {
+      expect(formatTemp(20, 'fahrenheit')).toBe('68°')
+      expect(formatTemp(0, 'fahrenheit')).toBe('32°')
     })
   })
 

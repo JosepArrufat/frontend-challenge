@@ -30,6 +30,8 @@ export interface CurrentWeather {
   surfacePressure: number
   windSpeed: number
   weatherCode: number
+  uvIndex: number
+  visibility: number
 }
 
 export interface HourlyData {
@@ -43,6 +45,8 @@ export interface DailyData {
   temperatureMax: number[]
   temperatureMin: number[]
   weatherCode: number[]
+  sunrise: string[]
+  sunset: string[]
 }
 
 export interface Forecast {
@@ -50,6 +54,22 @@ export interface Forecast {
   current: CurrentWeather
   hourly: HourlyData
   daily: DailyData
+}
+
+export interface HourlyEntry {
+  time: string
+  temperature: number
+  weatherCode: number
+  isNow: boolean
+}
+
+export interface DailyEntry {
+  date: string
+  max: number
+  min: number
+  weatherCode: number
+  historical: boolean
+  isToday: boolean
 }
 
 export interface ForecastResponse {
@@ -62,6 +82,8 @@ export interface ForecastResponse {
     surface_pressure: number
     wind_speed_10m: number
     weather_code: number
+    uv_index: number
+    visibility: number
   }
   hourly: {
     time: string[]
@@ -73,5 +95,7 @@ export interface ForecastResponse {
     temperature_2m_max: number[]
     temperature_2m_min: number[]
     weather_code: number[]
+    sunrise: string[]
+    sunset: string[]
   }
 }

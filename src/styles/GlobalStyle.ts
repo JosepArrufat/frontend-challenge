@@ -5,18 +5,21 @@ export const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+      box-shadow 0.25s ease, fill 0.25s ease;
   }
 
   html, body, #root {
     height: 100%;
   }
 
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     font-family: ${({ theme }) => theme.font.sans};
-    background:
-      radial-gradient(900px 520px at 12% -12%, oklch(0.62 0.2 256 / 0.1), transparent 62%),
-      radial-gradient(760px 520px at 102% 0%, oklch(0.72 0.19 52 / 0.07), transparent 58%),
-      ${({ theme }) => theme.color.background};
+    background: ${({ theme }) => theme.color.background};
     color: ${({ theme }) => theme.color.foreground};
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -47,13 +50,13 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   ::selection {
-    background: oklch(0.62 0.2 256 / 0.35);
+    background: color-mix(in oklab, ${({ theme }) => theme.color.primary} 35%, transparent);
     color: ${({ theme }) => theme.color.foreground};
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: oklch(1 0 0 / 0.18) transparent;
+    scrollbar-color: color-mix(in oklab, ${({ theme }) => theme.color.foreground} 20%, transparent) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -62,7 +65,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   *::-webkit-scrollbar-thumb {
-    background: oklch(1 0 0 / 0.18);
+    background: color-mix(in oklab, ${({ theme }) => theme.color.foreground} 20%, transparent);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;

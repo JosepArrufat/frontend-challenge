@@ -1,23 +1,96 @@
 import { useState } from 'react'
-import { CloudSun, MapPin, X } from 'lucide-react'
+import { CloudSun } from 'lucide-react'
 import styled from 'styled-components'
+import { TopBar } from '../components/layout/TopBar'
 import { Search } from '../components/search/Search'
+import { WeatherHero, WeatherHeroSkeleton } from '../components/weather/WeatherHero'
+import { HourlyForecast, HourlyForecastSkeleton } from '../components/weather/HourlyForecast'
+import { DailyForecast, DailyForecastSkeleton } from '../components/weather/DailyForecast'
+import { ErrorMessage } from '../components/ui/ErrorMessage'
+import { useForecast } from '../hooks/useForecast'
+import { getHourlySlice, getDailyEntries, getTodaySunTimes } from '../lib/forecast'
 import type { City } from '../types'
+
+export function Home() {
+  const [city, setCity] = useState<City | null>(null)
+  const forecast = useForecast(city ? { latitude: city.latitude, longitude: city.longitude } : null)
+
+  return (
+    <Page>
+      {!city && (
+        <Welcome>
+          <HeroMark>
+            <CloudSun size={30} />
+          </HeroMark>
+          <Title>Weather Forecast</Title>
+          <Subtitle>
+            Search for any city to see its current conditions, hourly outlook, and a 30-day
+            forecast.
+          </Subtitle>
+          <SearchSlot>
+            <Search onSelect={setCity} />
+          </SearchSlot>
+        </Welcome>
+      )}
+
+      {city && (
+        <>
+          <TopBar onSelectCity={setCity} />
+          <Content>
+            {forecast.isError ? (
+              <ErrorSlot>
+                <ErrorMessage
+                  message="Could not load the forecast for this city. Check your connection and try again."
+                  onRetry={() => forecast.refetch()}
+                />
+              </ErrorSlot>
+            ) : forecast.isLoading || !forecast.data ? (
+              <>
+                <LeftCol>
+                  <WeatherHeroSkeleton city={city} />
+                </LeftCol>
+                <RightCol>
+                  <HourlyForecastSkeleton />
+                  <DailyForecastSkeleton />
+                </RightCol>
+              </>
+            ) : (
+              <>
+                <LeftCol>
+                  <WeatherHero
+                    city={city}
+                    current={forecast.data.current}
+                    timezone={forecast.data.timezone}
+                    sunrise={getTodaySunTimes(forecast.data).sunrise}
+                    sunset={getTodaySunTimes(forecast.data).sunset}
+                  />
+                </LeftCol>
+                <RightCol>
+                  <HourlyForecast entries={getHourlySlice(forecast.data)} />
+                  <DailyForecast key={city.id} entries={getDailyEntries(forecast.data)} />
+                </RightCol>
+              </>
+            )}
+          </Content>
+        </>
+      )}
+    </Page>
+  )
+}
 
 const Page = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding: 4.5rem 1.5rem 4rem;
+  min-height: 100vh;
 `
 
-const HeroStack = styled.div`
+const Welcome = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 1.25rem;
+  padding: 4rem 1.5rem 4rem;
 `
 
 const HeroMark = styled.div`
@@ -50,108 +123,31 @@ const SearchSlot = styled.div`
   display: flex;
   justify-content: center;
   width: 100%;
-`
-
-const SelectedCard = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  width: 100%;
   max-width: 30rem;
-  padding: 1rem 1.125rem;
-  border-radius: ${({ theme }) => theme.radius.lg};
-  background: ${({ theme }) => theme.color.card};
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid ${({ theme }) => theme.color.border};
-  box-shadow: ${({ theme }) => theme.shadow.card};
 `
 
-const PinWrap = styled.div`
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: ${({ theme }) => theme.radius.md};
-  color: ${({ theme }) => theme.color.primary};
-  background: color-mix(in oklab, ${({ theme }) => theme.color.primary} 16%, transparent);
-`
-
-const SelectedInfo = styled.div`
+const Content = styled.div`
   display: flex;
-  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  align-items: flex-start;
+`
+
+const LeftCol = styled.div`
+  flex: 1.2;
   min-width: 0;
 `
 
-const SelectedName = styled.span`
-  font-size: 1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.color.foreground};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+const RightCol = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 `
 
-const SelectedMeta = styled.span`
-  font-size: 0.8125rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+const ErrorSlot = styled.div`
+  width: 100%;
+  max-width: 30rem;
+  margin: 2rem auto;
 `
-
-const Deselect = styled.button`
-  margin-left: auto;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: ${({ theme }) => theme.radius.full};
-  color: ${({ theme }) => theme.color.mutedForeground};
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.color.foreground};
-    background: ${({ theme }) => theme.color.accent};
-  }
-`
-
-export function Home() {
-  const [city, setCity] = useState<City | null>(null)
-
-  return (
-    <Page>
-      <HeroStack>
-        <HeroMark>
-          <CloudSun size={30} />
-        </HeroMark>
-        <Title>Weather Forecast</Title>
-        <Subtitle>
-          Search for any city to see its current conditions, hourly outlook, and a 30-day forecast.
-        </Subtitle>
-      </HeroStack>
-
-      <SearchSlot>
-        <Search onSelect={setCity} />
-      </SearchSlot>
-
-      {city && (
-        <SelectedCard>
-          <PinWrap>
-            <MapPin size={18} />
-          </PinWrap>
-          <SelectedInfo>
-            <SelectedName>{city.name}</SelectedName>
-            <SelectedMeta>{city.country || 'Selected city'}</SelectedMeta>
-          </SelectedInfo>
-          <Deselect
-            type="button"
-            aria-label={`Clear ${city.name} selection`}
-            onClick={() => setCity(null)}
-          >
-            <X size={16} />
-          </Deselect>
-        </SelectedCard>
-      )}
-    </Page>
-  )
-}

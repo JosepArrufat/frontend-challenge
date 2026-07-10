@@ -7,7 +7,6 @@ export const SEARCH_DEBOUNCE_MS = 300
 
 export const FORECAST_DAYS = 16
 export const PAST_DAYS = 14
-export const FORECAST_TOTAL_DAYS = FORECAST_DAYS + PAST_DAYS
 export const DAILY_PAGE_SIZE = 5
 export const HOURLY_SLICE_HOURS = 24
 
