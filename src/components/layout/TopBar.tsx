@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Settings, Sun, Moon } from 'lucide-react'
 import styled from 'styled-components'
 import { Search } from '../search/Search'
+import { AuthWidget } from './AuthWidget'
 import { useThemeMode } from '../../hooks/useThemeMode'
 import type { City } from '../../types'
 
@@ -17,6 +18,7 @@ export function TopBar({ onSelectCity }: TopBarProps) {
         <Search onSelect={onSelectCity} />
       </SearchSlot>
       <Actions>
+        <AuthWidget />
         <IconButton as={Link} to="/settings" aria-label="Settings">
           <Settings size={18} />
         </IconButton>
@@ -35,7 +37,7 @@ const Bar = styled.div`
   position: sticky;
   top: 0;
   z-index: 30;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
@@ -43,6 +45,10 @@ const Bar = styled.div`
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
 `
 
 const SearchSlot = styled.div`

@@ -14,6 +14,7 @@ import {
 import { useUnit } from '../../hooks/useUnit'
 import { WeatherIcon } from '../ui/WeatherIcon'
 import { Skeleton } from '../ui/Skeleton'
+import { FavoriteButton } from '../favorites/FavoriteButton'
 
 export interface WeatherHeroProps {
   city: City
@@ -35,7 +36,10 @@ export function WeatherHero({ city, current, timezone, sunrise, sunset }: Weathe
             {currentWeekday(timezone)} · {formatCurrentTime(timezone)}
           </DateTime>
         </PlaceInfo>
-        <BigIcon name={info.icon} size={80} />
+        <HeaderActions>
+          <FavoriteButton city={city} />
+          <BigIcon name={info.icon} size={64} />
+        </HeaderActions>
       </HeaderRow>
 
       <TempBlock>
@@ -149,7 +153,12 @@ const Panel = styled.section`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.75rem;
+  padding: 1.25rem;
+
+  @media (min-width: 1024px) {
+    padding: 1.75rem;
+  }
+
   border-radius: 0;
   background: transparent;
   border: none;
@@ -163,6 +172,13 @@ const HeaderRow = styled.div`
   gap: 1rem;
 `
 
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+`
+
 const PlaceInfo = styled.div`
   display: flex;
   flex-direction: column;
@@ -171,7 +187,7 @@ const PlaceInfo = styled.div`
 `
 
 const CityName = styled.h2`
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -187,7 +203,14 @@ const DateTime = styled.span`
 const BigIcon = styled(WeatherIcon)`
   color: ${({ theme }) => theme.color.primary};
   flex-shrink: 0;
+  width: 64px;
+  height: 64px;
   filter: drop-shadow(0 4px 16px oklch(0.62 0.2 256 / 0.4));
+
+  @media (min-width: 1024px) {
+    width: 80px;
+    height: 80px;
+  }
 `
 
 const TempBlock = styled.div`
@@ -197,7 +220,7 @@ const TempBlock = styled.div`
 `
 
 const Temp = styled.span`
-  font-size: 3.5rem;
+  font-size: clamp(2.5rem, 10vw, 3.5rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -223,6 +246,7 @@ const Condition = styled.span`
 
 const StatRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 0.625rem;
 `
 
@@ -230,11 +254,16 @@ const StatTile = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.3125rem;
-  flex: 1;
+  flex: 1 1 calc(50% - 0.625rem);
+  min-width: 0;
   padding: 0.75rem 0.875rem;
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.color.muted};
   border: 1px solid ${({ theme }) => theme.color.border};
+
+  @media (min-width: 1024px) {
+    flex: 1;
+  }
 `
 
 const StatIconWrap = styled.span`
@@ -257,8 +286,12 @@ const StatValue = styled.span`
 
 const DetailRow = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.625rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
 `
 
 const DetailTile = styled.div`

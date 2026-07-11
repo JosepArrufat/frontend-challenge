@@ -12,5 +12,3 @@ export const HOURLY_SLICE_HOURS = 24
 
 export const API_TIMEOUT_MS = 8000
 export const FORECAST_STALE_TIME = 1000 * 60 * 10
-
-export const FAVORITES_STORAGE_KEY = 'wf:favorites'

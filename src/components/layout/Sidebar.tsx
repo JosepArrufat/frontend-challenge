@@ -3,6 +3,7 @@ import { CloudSun, Home, Globe, Star, Bell, Settings, User } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import styled from 'styled-components'
 import { useUnit } from '../../hooks/useUnit'
+import { useUser } from '../../hooks/useUser'
 import type { TempUnit } from '../../context/unitContext'
 
 interface NavItem {
@@ -20,10 +21,16 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
-export function Sidebar() {
+export interface SidebarProps {
+  $open: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ $open, onClose }: SidebarProps) {
   const { unit, setUnit } = useUnit()
+  const { username } = useUser()
   return (
-    <Aside>
+    <Aside $open={$open}>
       <Brand>
         <BrandMark>
           <CloudSun size={22} />
@@ -33,7 +40,7 @@ export function Sidebar() {
 
       <Nav>
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-          <StyledLink key={to} to={to} end={end}>
+          <StyledLink key={to} to={to} end={end} onClick={onClose}>
             <Icon size={18} />
             <span>{label}</span>
           </StyledLink>
@@ -46,7 +53,7 @@ export function Sidebar() {
         <Avatar>
           <User size={18} />
         </Avatar>
-        <ProfileName>Guest</ProfileName>
+        <ProfileName>{username}</ProfileName>
       </Profile>
     </Aside>
   )
@@ -79,15 +86,13 @@ function UnitToggle({ value, onChange }: UnitToggleProps) {
     </ToggleGroup>
   )
 }
-const Aside = styled.aside`
+
+const Aside = styled.aside<{ $open: boolean }>`
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   gap: 1.5rem;
   width: 16rem;
-  height: 100vh;
-  position: sticky;
-  top: 0;
   padding: 1.5rem 1rem;
   background: linear-gradient(
     180deg,
@@ -99,6 +104,22 @@ const Aside = styled.aside`
     ${({ theme }) => theme.color.sidebar}
   );
   border-right: 1px solid ${({ theme }) => theme.color.border};
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 50;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+
+  ${({ $open }) => $open && 'transform: translateX(0);'}
+
+  @media (min-width: 1024px) {
+    position: sticky;
+    transform: none;
+    transition: none;
+  }
 `
 
 const Brand = styled.div`

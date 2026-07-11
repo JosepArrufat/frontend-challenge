@@ -95,11 +95,15 @@ const Panel = styled.section`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.25rem;
+  padding: 1rem;
   border-radius: ${({ theme }) => theme.radius.xl};
   background: ${({ theme }) => theme.color.card};
   border: 1px solid ${({ theme }) => theme.color.border};
   box-shadow: ${({ theme }) => theme.shadow.card};
+
+  @media (min-width: 1024px) {
+    padding: 1.25rem;
+  }
 `
 
 const Heading = styled.h3`
@@ -113,13 +117,14 @@ const Heading = styled.h3`
 const RowList = styled.div`
   display: flex;
   flex-direction: column;
+  overflow-x: auto;
 `
 
 const Row = styled.div<{ $today: boolean }>`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.5rem;
+  gap: 0.5rem;
+  padding: 0.625rem 0.25rem;
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
 
   &:last-child {
@@ -129,15 +134,25 @@ const Row = styled.div<{ $today: boolean }>`
   background: ${({ $today, theme }) =>
     $today ? `color-mix(in oklab, ${theme.color.primary} 8%, transparent)` : 'transparent'};
   border-radius: ${({ $today, theme }) => ($today ? theme.radius.sm : '0')};
+
+  @media (min-width: 1024px) {
+    gap: 0.75rem;
+    padding: 0.625rem 0.5rem;
+  }
 `
 
 const DateCell = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  width: 9rem;
+  gap: 0.375rem;
+  width: 6.5rem;
   flex-shrink: 0;
   white-space: nowrap;
+
+  @media (min-width: 1024px) {
+    gap: 0.5rem;
+    width: 9rem;
+  }
 `
 
 const DayName = styled.span`
@@ -147,9 +162,13 @@ const DayName = styled.span`
 `
 
 const DayDate = styled.span`
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${({ theme }) => theme.color.mutedForeground};
   font-variant-numeric: tabular-nums;
+
+  @media (max-width: 480px) {
+    display: none;
+  }
 `
 
 const Tag = styled.span<{ $tone: 'primary' }>`

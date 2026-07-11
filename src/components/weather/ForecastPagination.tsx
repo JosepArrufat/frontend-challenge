@@ -37,8 +37,8 @@ const Nav = styled.div`
 const PagerBtn = styled.button`
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: ${({ theme }) => theme.radius.md};
   color: ${({ theme }) => theme.color.foreground};
   background: ${({ theme }) => theme.color.secondary};

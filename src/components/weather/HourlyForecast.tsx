@@ -59,11 +59,15 @@ const Panel = styled.section`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1.25rem;
+  padding: 1rem;
   border-radius: ${({ theme }) => theme.radius.xl};
   background: ${({ theme }) => theme.color.card};
   border: 1px solid ${({ theme }) => theme.color.border};
   box-shadow: ${({ theme }) => theme.shadow.card};
+
+  @media (min-width: 1024px) {
+    padding: 1.25rem;
+  }
 `
 
 const Heading = styled.h3`

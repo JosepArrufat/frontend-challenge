@@ -1,0 +1,209 @@
+import { useNavigate } from 'react-router-dom'
+import { Trash2, MapPin } from 'lucide-react'
+import styled from 'styled-components'
+import type { City } from '../../types'
+import { useForecast } from '../../hooks/useForecast'
+import { useUnit } from '../../hooks/useUnit'
+import { useFavorites } from '../../hooks/useFavorites'
+import { getWeatherInfo } from '../../lib/weatherCodes'
+import { formatTemp } from '../../lib/format'
+import { getDailyEntries } from '../../lib/forecast'
+import { WeatherIcon } from '../ui/WeatherIcon'
+import { Skeleton } from '../ui/Skeleton'
+import { flagEmoji } from '../../lib/flag'
+
+export interface FavoriteCardProps {
+  city: City
+}
+
+export function FavoriteCard({ city }: FavoriteCardProps) {
+  const navigate = useNavigate()
+  const { unit } = useUnit()
+  const { removeFavorite } = useFavorites()
+  const forecast = useForecast({ latitude: city.latitude, longitude: city.longitude })
+
+  const today = forecast.data ? getDailyEntries(forecast.data).find((e) => e.isToday) : null
+  const info = forecast.data ? getWeatherInfo(forecast.data.current.weatherCode) : null
+  const loading = forecast.isLoading || !forecast.data || !info || !today
+
+  function open() {
+    navigate('/', { state: { city } })
+  }
+
+  return (
+    <tr
+      role="button"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          open()
+        }
+      }}
+      aria-label={`Open forecast for ${city.name}`}
+    >
+      <LocationCell>
+        <Flag aria-hidden>{flagEmoji(city.countryCode)}</Flag>
+        <LocationText>
+          <CityName>{city.name}</CityName>
+          <Country>
+            <MapPin size={11} aria-hidden />
+            {city.country || 'Unknown'}
+          </Country>
+        </LocationText>
+      </LocationCell>
+
+      <ConditionCell>
+        {loading ? (
+          <ConditionSkeleton>
+            <Skeleton width="1.5rem" height="1.5rem" radius="9999px" />
+            <Skeleton width="5rem" height="0.75rem" />
+          </ConditionSkeleton>
+        ) : (
+          <Condition>
+            <ConditionIcon name={info.icon} size={22} />
+            <ConditionLabel>{info.label}</ConditionLabel>
+          </Condition>
+        )}
+      </ConditionCell>
+
+      <TempCell>
+        {forecast.data ? (
+          formatTemp(forecast.data.current.temperature, unit)
+        ) : (
+          <Skeleton width="2.5rem" height="1.25rem" />
+        )}
+      </TempCell>
+
+      <MinCell>
+        {today ? formatTemp(today.min, unit) : <Skeleton width="2.5rem" height="0.9rem" />}
+      </MinCell>
+
+      <MaxCell>
+        {today ? formatTemp(today.max, unit) : <Skeleton width="2.5rem" height="0.9rem" />}
+      </MaxCell>
+
+      <ActionCell>
+        <Remove
+          type="button"
+          aria-label={`Remove ${city.name} from favorites`}
+          onClick={(e) => {
+            e.stopPropagation()
+            removeFavorite(city.id)
+          }}
+        >
+          <Trash2 size={16} aria-hidden />
+        </Remove>
+      </ActionCell>
+    </tr>
+  )
+}
+
+const LocationCell = styled.td`
+  padding: 0.875rem 1.125rem;
+  white-space: nowrap;
+`
+
+const Flag = styled.span`
+  display: inline-block;
+  font-size: 1.25rem;
+  margin-right: 0.625rem;
+  vertical-align: middle;
+`
+
+const LocationText = styled.div`
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  vertical-align: middle;
+`
+
+const CityName = styled.span`
+  font-size: 0.9375rem;
+  font-weight: 600;
+`
+
+const Country = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 0.1875rem;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.color.mutedForeground};
+`
+
+const ConditionCell = styled.td`
+  padding: 0.875rem 1.125rem;
+  white-space: nowrap;
+`
+
+const Condition = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+const ConditionIcon = styled(WeatherIcon)`
+  color: ${({ theme }) => theme.color.foreground};
+  flex-shrink: 0;
+`
+
+const ConditionLabel = styled.span`
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.color.mutedForeground};
+`
+
+const ConditionSkeleton = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+const TempCell = styled.td`
+  padding: 0.875rem 1.125rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+`
+
+const MinCell = styled.td`
+  padding: 0.875rem 1.125rem;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.color.mutedForeground};
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+`
+
+const MaxCell = styled.td`
+  padding: 0.875rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+`
+
+const ActionCell = styled.td`
+  padding: 0.875rem 1.125rem;
+  text-align: center;
+`
+
+const Remove = styled.button`
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: ${({ theme }) => theme.radius.full};
+  color: ${({ theme }) => theme.color.mutedForeground};
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.color.destructive};
+    background: color-mix(in oklab, ${({ theme }) => theme.color.destructive} 12%, transparent);
+  }
+`

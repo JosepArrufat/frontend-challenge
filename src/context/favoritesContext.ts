@@ -5,12 +5,16 @@ export interface FavoritesState {
   items: FavoriteCity[]
 }
 
-export type FavoritesAction = { type: 'add'; city: FavoriteCity } | { type: 'remove'; id: number }
+export type FavoritesAction =
+  | { type: 'add'; city: FavoriteCity }
+  | { type: 'remove'; id: number }
+  | { type: 'toggle'; city: FavoriteCity }
 
 export interface FavoritesContextValue {
   favorites: FavoriteCity[]
   addFavorite: (city: FavoriteCity) => void
   removeFavorite: (id: number) => void
+  toggleFavorite: (city: FavoriteCity) => void
   isFavorite: (id: number) => boolean
 }
 
@@ -23,7 +27,16 @@ export function favoritesReducer(state: FavoritesState, action: FavoritesAction)
       return { items: [...state.items, action.city] }
     case 'remove':
       return { items: state.items.filter((city) => city.id !== action.id) }
+    case 'toggle':
+      if (state.items.some((city) => city.id === action.city.id)) {
+        return { items: state.items.filter((city) => city.id !== action.city.id) }
+      }
+      return { items: [...state.items, action.city] }
     default:
       return state
   }
+}
+
+export function favoritesKey(username: string): string {
+  return `wf:favorites:${username}`
 }

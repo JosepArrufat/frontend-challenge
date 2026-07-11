@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import styled from 'styled-components'
 import { Sidebar } from './components/layout/Sidebar'
+import { BottomNav } from './components/layout/BottomNav'
+import { NavContext } from './context/navContext'
 import { Home } from './routes/Home'
 import { Favorites } from './routes/Favorites'
 import { WorldMap } from './routes/WorldMap'
@@ -8,19 +11,24 @@ import { Alerts } from './routes/Alerts'
 import { Settings } from './routes/Settings'
 
 export default function App() {
+  const [navOpen, setNavOpen] = useState(false)
   return (
-    <Shell>
-      <Sidebar />
-      <Main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/map" element={<WorldMap />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </Main>
-    </Shell>
+    <NavContext.Provider value={{ openNav: () => setNavOpen(true) }}>
+      <Shell>
+        <Sidebar $open={navOpen} onClose={() => setNavOpen(false)} />
+        {navOpen && <Backdrop onClick={() => setNavOpen(false)} aria-hidden />}
+        <Main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/map" element={<WorldMap />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Main>
+        <BottomNav />
+      </Shell>
+    </NavContext.Provider>
   )
 }
 
@@ -29,9 +37,28 @@ const Shell = styled.div`
   min-height: 100vh;
 `
 
+const Backdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: oklch(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
+`
+
 const Main = styled.main`
   flex: 1;
   min-width: 0;
+  padding-bottom: 3.75rem;
+
+  @media (min-width: 1024px) {
+    padding-bottom: 0;
+  }
+
   background:
     radial-gradient(
       900px 520px at 18% -10%,

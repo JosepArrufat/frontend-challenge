@@ -1,28 +1,50 @@
 import { Bell } from 'lucide-react'
 import styled from 'styled-components'
+import { MobileTopBar } from '../components/layout/MobileTopBar'
 
 export function Alerts() {
   return (
     <Page>
-      <Mark>
-        <Bell size={28} />
-      </Mark>
-      <Title>Weather alerts</Title>
-      <Subtitle>
-        There are no active alerts right now. Severe-weather alerts will appear here when issued.
-      </Subtitle>
+      <MobileTopBar center={<MobileTitle>Alerts</MobileTitle>} />
+      <Content>
+        <Mark>
+          <Bell size={28} />
+        </Mark>
+        <Title>Weather alerts</Title>
+        <Subtitle>
+          There are no active alerts right now. Severe-weather alerts will appear here when issued.
+        </Subtitle>
+      </Content>
     </Page>
   )
 }
 
+const MobileTitle = styled.span`
+  font-size: 1rem;
+  font-weight: 600;
+`
+
 const Page = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+`
+
+const Content = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   gap: 1.25rem;
-  padding: 6rem 1.5rem 4rem;
+  flex: 1;
+  padding: 1.5rem 1rem 4rem;
+`
+
+const Title = styled.h1`
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 `
 
 const Mark = styled.div`
@@ -37,12 +59,6 @@ const Mark = styled.div`
   box-shadow:
     ${({ theme }) => theme.glow.signature},
     inset 0 1px 0 oklch(1 0 0 / 0.12);
-`
-
-const Title = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
 `
 
 const Subtitle = styled.p`
