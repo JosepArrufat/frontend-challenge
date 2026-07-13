@@ -14,9 +14,10 @@ import { flagEmoji } from '../../lib/flag'
 
 export interface FavoriteCardProps {
   city: City
+  variant?: 'desktop' | 'mobile'
 }
 
-export function FavoriteCard({ city }: FavoriteCardProps) {
+export function FavoriteCard({ city, variant = 'desktop' }: FavoriteCardProps) {
   const navigate = useNavigate()
   const { unit } = useUnit()
   const { removeFavorite } = useFavorites()
@@ -28,6 +29,61 @@ export function FavoriteCard({ city }: FavoriteCardProps) {
 
   function open() {
     navigate('/', { state: { city } })
+  }
+
+  if (variant === 'mobile') {
+    return (
+      <MobileCard
+        role="button"
+        tabIndex={0}
+        onClick={open}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            open()
+          }
+        }}
+        aria-label={`Open forecast for ${city.name}`}
+      >
+        <MobileLeft>
+          <Flag aria-hidden>{flagEmoji(city.countryCode)}</Flag>
+          <MobileLocationText>
+            <CityName>{city.name}</CityName>
+            <Country>
+              <MapPin size={11} aria-hidden />
+              {city.country || 'Unknown'}
+            </Country>
+          </MobileLocationText>
+        </MobileLeft>
+
+        <MobileRight>
+          <MobileWeatherGroup>
+            {loading ? (
+              <>
+                <Skeleton width="1.375rem" height="1.375rem" radius="9999px" />
+                <Skeleton width="2.5rem" height="1rem" />
+              </>
+            ) : (
+              <>
+                <ConditionIcon name={info.icon} size={20} />
+                <MobileCurrent>{formatTemp(forecast.data.current.temperature, unit)}</MobileCurrent>
+              </>
+            )}
+          </MobileWeatherGroup>
+
+          <MobileRemove
+            type="button"
+            aria-label={`Remove ${city.name} from favorites`}
+            onClick={(e) => {
+              e.stopPropagation()
+              removeFavorite(city.id)
+            }}
+          >
+            <Trash2 size={18} aria-hidden />
+          </MobileRemove>
+        </MobileRight>
+      </MobileCard>
+    )
   }
 
   return (
@@ -76,13 +132,13 @@ export function FavoriteCard({ city }: FavoriteCardProps) {
         )}
       </TempCell>
 
-      <MinCell>
-        {today ? formatTemp(today.min, unit) : <Skeleton width="2.5rem" height="0.9rem" />}
-      </MinCell>
-
-      <MaxCell>
-        {today ? formatTemp(today.max, unit) : <Skeleton width="2.5rem" height="0.9rem" />}
-      </MaxCell>
+      <MinMaxCell>
+        {today ? (
+          `${formatTemp(today.min, unit)} / ${formatTemp(today.max, unit)}`
+        ) : (
+          <Skeleton width="5.5rem" height="0.9rem" />
+        )}
+      </MinMaxCell>
 
       <ActionCell>
         <Remove
@@ -117,6 +173,19 @@ const LocationText = styled.div`
   flex-direction: column;
   gap: 0.125rem;
   vertical-align: middle;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+`
+
+const MobileLocationText = styled.div`
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
 `
 
 const CityName = styled.span`
@@ -130,6 +199,10 @@ const Country = styled.span`
   gap: 0.1875rem;
   font-size: 0.75rem;
   color: ${({ theme }) => theme.color.mutedForeground};
+
+  @media (min-width: 768px) {
+    white-space: nowrap;
+  }
 `
 
 const ConditionCell = styled.td`
@@ -159,6 +232,51 @@ const ConditionSkeleton = styled.div`
   gap: 0.5rem;
 `
 
+const MobileCard = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.9375rem 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid oklch(1 0 0 / 0.08);
+  touch-action: manipulation;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.color.ring};
+    outline-offset: 2px;
+  }
+`
+
+const MobileLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+`
+
+const MobileRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+`
+
+const MobileWeatherGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+const MobileCurrent = styled.span`
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+`
+
 const TempCell = styled.td`
   padding: 0.875rem 1.125rem;
   font-size: 1.125rem;
@@ -168,19 +286,10 @@ const TempCell = styled.td`
   white-space: nowrap;
 `
 
-const MinCell = styled.td`
+const MinMaxCell = styled.td`
   padding: 0.875rem 1.125rem;
   font-size: 0.875rem;
   color: ${({ theme }) => theme.color.mutedForeground};
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-`
-
-const MaxCell = styled.td`
-  padding: 0.875rem 1.125rem;
-  font-size: 0.875rem;
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
@@ -206,4 +315,9 @@ const Remove = styled.button`
     color: ${({ theme }) => theme.color.destructive};
     background: color-mix(in oklab, ${({ theme }) => theme.color.destructive} 12%, transparent);
   }
+`
+
+const MobileRemove = styled(Remove)`
+  width: 2.75rem;
+  height: 2.75rem;
 `

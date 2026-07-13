@@ -3,11 +3,14 @@ import { Settings as SettingsIcon } from 'lucide-react'
 import styled from 'styled-components'
 import { useUnit } from '../hooks/useUnit'
 import { useUser } from '../hooks/useUser'
+import { useCurrentCity } from '../hooks/useCurrentCity'
 import { MobileTopBar } from '../components/layout/MobileTopBar'
+import { Search } from '../components/search/Search'
 
 export function Settings() {
   const { unit, setUnit } = useUnit()
   const { username, setUsername } = useUser()
+  const { currentCity, setCurrentCity, clearCurrentCity } = useCurrentCity()
   const [nameInput, setNameInput] = useState(username)
   const inputChanged = nameInput.trim() !== username
 
@@ -19,10 +22,27 @@ export function Settings() {
           <SettingsIcon size={28} />
         </Mark>
         <Title>Settings</Title>
-        <Subtitle>
-          More preferences will appear here. For now you can switch the temperature unit and set
-          your name.
-        </Subtitle>
+        <Subtitle>Set your name, choose a default city, and switch the temperature unit.</Subtitle>
+        <StackedRow>
+          <RowHeader>
+            <RowLabel>Current city</RowLabel>
+            <RowMeta>
+              {currentCity
+                ? `${currentCity.name}${currentCity.country ? `, ${currentCity.country}` : ''}`
+                : 'No saved city. Home will fall back to your current location when available.'}
+            </RowMeta>
+          </RowHeader>
+          <SearchWrap>
+            <Search onSelect={setCurrentCity} />
+          </SearchWrap>
+          {currentCity && (
+            <InlineAction>
+              <GhostBtn type="button" onClick={clearCurrentCity}>
+                Clear saved city
+              </GhostBtn>
+            </InlineAction>
+          )}
+        </StackedRow>
         <Row>
           <RowLabel>Your name</RowLabel>
           <NameInput
@@ -133,9 +153,35 @@ const Row = styled.div`
   }
 `
 
+const StackedRow = styled(Row)`
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-direction: column;
+`
+
+const RowHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`
+
 const RowLabel = styled.span`
   font-size: 0.9375rem;
   font-weight: 500;
+`
+
+const RowMeta = styled.span`
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.color.mutedForeground};
+`
+
+const SearchWrap = styled.div`
+  width: 100%;
+`
+
+const InlineAction = styled.div`
+  display: flex;
+  justify-content: flex-end;
 `
 
 const NameInput = styled.input`
@@ -172,6 +218,21 @@ const SaveBtn = styled.button`
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+`
+
+const GhostBtn = styled.button`
+  padding: 0.4375rem 0.875rem;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.color.mutedForeground};
+  background: ${({ theme }) => theme.color.secondary};
+  border: 1px solid ${({ theme }) => theme.color.border};
+
+  &:hover {
+    color: ${({ theme }) => theme.color.foreground};
+    background: ${({ theme }) => theme.color.accent};
   }
 `
 

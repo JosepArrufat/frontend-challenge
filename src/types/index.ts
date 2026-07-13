@@ -22,6 +22,14 @@ export interface GeocodingResponse {
   results?: GeocodingResult[]
 }
 
+export interface ReverseGeocodingResponse {
+  city?: string
+  locality?: string
+  principalSubdivision?: string
+  countryName?: string
+  countryCode?: string
+}
+
 export interface CurrentWeather {
   time: string
   temperature: number

@@ -52,20 +52,24 @@ export function Favorites() {
             {favorites.length} {favorites.length === 1 ? 'city' : 'cities'}
           </Count>
         </Header>
+        <MobileList>
+          {favorites.map((city) => (
+            <FavoriteCard key={city.id} city={city} variant="mobile" />
+          ))}
+        </MobileList>
         <TableWrap>
           <Table>
             <thead>
               <tr>
-                <Th scope="col">Location</Th>
+                <Th scope="col" $location>
+                  Location
+                </Th>
                 <Th scope="col">Condition</Th>
                 <Th scope="col" $right>
                   Current
                 </Th>
                 <Th scope="col" $right>
-                  Min
-                </Th>
-                <Th scope="col" $right>
-                  Max
+                  Min/Max
                 </Th>
                 <Th scope="col" $center>
                   Actions
@@ -143,7 +147,7 @@ const EmptyContent = styled.div`
 const Header = styled.div`
   display: none;
 
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     display: flex;
     align-items: baseline;
     gap: 0.75rem;
@@ -161,12 +165,27 @@ const Count = styled.span`
   color: ${({ theme }) => theme.color.mutedForeground};
 `
 
+const MobileList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+`
+
 const TableWrap = styled.div`
+  display: none;
   border-radius: ${({ theme }) => theme.radius.xl};
   background: ${({ theme }) => theme.color.card};
   border: 1px solid ${({ theme }) => theme.color.border};
   box-shadow: ${({ theme }) => theme.shadow.card};
   overflow-x: auto;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
 `
 
 const Table = styled.table`
@@ -190,8 +209,9 @@ const Table = styled.table`
   }
 `
 
-const Th = styled.th<{ $right?: boolean; $center?: boolean }>`
+const Th = styled.th<{ $right?: boolean; $center?: boolean; $location?: boolean }>`
   padding: 0.75rem 1.125rem;
+  padding-left: ${({ $location }) => ($location ? '3rem' : '1.125rem')};
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;

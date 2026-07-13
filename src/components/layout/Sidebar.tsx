@@ -119,6 +119,7 @@ const Aside = styled.aside<{ $open: boolean }>`
     position: sticky;
     transform: none;
     transition: none;
+    ${({ $open }) => !$open && 'display: none;'}
   }
 `
 

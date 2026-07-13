@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { CloudSun, MapPin } from 'lucide-react'
 import styled from 'styled-components'
@@ -11,6 +11,8 @@ import { HourlyForecast, HourlyForecastSkeleton } from '../components/weather/Ho
 import { DailyForecast, DailyForecastSkeleton } from '../components/weather/DailyForecast'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { FavoriteButton } from '../components/favorites/FavoriteButton'
+import { useCurrentCity } from '../hooks/useCurrentCity'
+import { useGeolocatedCity } from '../hooks/useGeolocatedCity'
 import { useForecast } from '../hooks/useForecast'
 import { getHourlySlice, getDailyEntries, getTodaySunTimes } from '../lib/forecast'
 import type { City } from '../types'
@@ -21,9 +23,23 @@ interface LocationState {
 
 export function Home() {
   const location = useLocation()
-  const [city, setCity] = useState<City | null>(
-    () => (location.state as LocationState)?.city ?? null,
-  )
+  const routeCity = (location.state as LocationState | null)?.city ?? null
+  const { currentCity, setCurrentCity } = useCurrentCity()
+  const shouldAutoDetectCity = !routeCity && !currentCity
+  const { city: detectedCity, status: detectedCityStatus } = useGeolocatedCity(shouldAutoDetectCity)
+  const [selectedCity, setSelectedCity] = useState<City | null | undefined>(undefined)
+  const city =
+    selectedCity === undefined ? (routeCity ?? currentCity ?? detectedCity ?? null) : selectedCity
+
+  useEffect(() => {
+    if (routeCity || currentCity || !detectedCity) return
+    setSelectedCity((prev) => (prev === undefined ? detectedCity : prev))
+  }, [routeCity, currentCity, detectedCity])
+
+  useEffect(() => {
+    if (city) setCurrentCity(city)
+  }, [city, setCurrentCity])
+
   const forecast = useForecast(city ? { latitude: city.latitude, longitude: city.longitude } : null)
 
   return (
@@ -33,11 +49,14 @@ export function Home() {
           <MobileTopBar
             center={
               <MobileSearch>
-                <Search onSelect={setCity} />
+                <Search onSelect={setSelectedCity} />
               </MobileSearch>
             }
             right={<AuthWidget />}
           />
+          <DesktopAuthBar>
+            <AuthWidget />
+          </DesktopAuthBar>
           <Welcome>
             <HeroMark>
               <CloudSun size={30} />
@@ -47,8 +66,15 @@ export function Home() {
               Search for any city to see its current conditions, hourly outlook, and a 30-day
               forecast.
             </Subtitle>
+            {shouldAutoDetectCity && detectedCityStatus !== 'success' && (
+              <LocationHint>
+                {detectedCityStatus === 'loading'
+                  ? 'Detecting your current location…'
+                  : 'Location unavailable. Search for a city or set a current city in Settings.'}
+              </LocationHint>
+            )}
             <SearchSlot>
-              <Search onSelect={setCity} />
+              <Search onSelect={setSelectedCity} />
             </SearchSlot>
           </Welcome>
         </>
@@ -58,7 +84,7 @@ export function Home() {
         <>
           <MobileTopBar
             center={
-              <MobileCityInfo onClick={() => setCity(null)}>
+              <MobileCityInfo onClick={() => setSelectedCity(null)}>
                 <MapPin size={14} />
                 <MobileCityName>{city.name}</MobileCityName>
                 {city.country && <MobileCityCountry>, {city.country}</MobileCityCountry>}
@@ -66,7 +92,7 @@ export function Home() {
             }
             right={<FavoriteButton city={city} />}
           />
-          <TopBar onSelectCity={setCity} />
+          <TopBar onSelectCity={setSelectedCity} />
           <Content>
             {forecast.isError ? (
               <ErrorSlot>
@@ -140,9 +166,54 @@ const MobileCityCountry = styled.span`
 `
 
 const Page = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  isolation: isolate;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      radial-gradient(circle at top, oklch(0.76 0.06 80 / 0.16), transparent 34%),
+      url('/beach.avif');
+    background-position:
+      center top,
+      center center;
+    background-size: auto, cover;
+    background-repeat: no-repeat;
+    opacity: 0.72;
+    transform: scale(1.04);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, oklch(0.12 0.01 250 / 0.18), oklch(0.1 0.01 250 / 0.36)),
+      radial-gradient(circle at top, oklch(0.78 0.08 85 / 0.12), transparent 40%);
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+`
+
+const DesktopAuthBar = styled.div`
+  display: none;
+
+  @media (min-width: 1024px) {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1.25rem 1.5rem 0;
+  }
 `
 
 const Welcome = styled.div`
@@ -182,6 +253,12 @@ const Subtitle = styled.p`
   max-width: 26rem;
   color: ${({ theme }) => theme.color.mutedForeground};
   font-size: 0.9375rem;
+`
+
+const LocationHint = styled.p`
+  max-width: 28rem;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.color.mutedForeground};
 `
 
 const SearchSlot = styled.div`

@@ -52,25 +52,31 @@ export function WeatherHero({ city, current, timezone, sunrise, sunset }: Weathe
 
       <StatRow>
         <StatTile>
-          <StatIconWrap>
-            <Wind size={16} />
-          </StatIconWrap>
+          <StatTop>
+            <StatIconWrap>
+              <Wind size={16} />
+            </StatIconWrap>
+            <StatValue>{roundTemp(current.windSpeed)} km/h</StatValue>
+          </StatTop>
           <StatLabel>Wind</StatLabel>
-          <StatValue>{roundTemp(current.windSpeed)} km/h</StatValue>
         </StatTile>
         <StatTile>
-          <StatIconWrap>
-            <Droplets size={16} />
-          </StatIconWrap>
+          <StatTop>
+            <StatIconWrap>
+              <Droplets size={16} />
+            </StatIconWrap>
+            <StatValue>{roundTemp(current.relativeHumidity)}%</StatValue>
+          </StatTop>
           <StatLabel>Humidity</StatLabel>
-          <StatValue>{roundTemp(current.relativeHumidity)}%</StatValue>
         </StatTile>
         <StatTile>
-          <StatIconWrap>
-            <Gauge size={16} />
-          </StatIconWrap>
+          <StatTop>
+            <StatIconWrap>
+              <Gauge size={16} />
+            </StatIconWrap>
+            <StatValue>{roundTemp(current.surfacePressure)} hPa</StatValue>
+          </StatTop>
           <StatLabel>Pressure</StatLabel>
-          <StatValue>{roundTemp(current.surfacePressure)} hPa</StatValue>
         </StatTile>
       </StatRow>
 
@@ -130,9 +136,11 @@ export function WeatherHeroSkeleton({ city }: WeatherHeroSkeletonProps) {
       <StatRow>
         {[0, 1, 2].map((i) => (
           <StatTile key={i}>
-            <Skeleton width="1.75rem" height="1.75rem" radius="0.75rem" />
-            <Skeleton width="3rem" height="0.75rem" />
-            <Skeleton width="4rem" height="0.9rem" />
+            <StatTop>
+              <Skeleton width="1rem" height="1rem" radius="9999px" />
+              <Skeleton width="3rem" height="0.9rem" />
+            </StatTop>
+            <Skeleton width="2.5rem" height="0.625rem" />
           </StatTile>
         ))}
       </StatRow>
@@ -246,24 +254,34 @@ const Condition = styled.span`
 
 const StatRow = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.625rem;
+  align-items: stretch;
 `
 
 const StatTile = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.3125rem;
-  flex: 1 1 calc(50% - 0.625rem);
+  gap: 0.25rem;
+  flex: 1;
   min-width: 0;
-  padding: 0.75rem 0.875rem;
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.color.muted};
-  border: 1px solid ${({ theme }) => theme.color.border};
+  padding: 0 0.875rem;
 
-  @media (min-width: 1024px) {
-    flex: 1;
+  &:first-child {
+    padding-left: 0;
   }
+
+  &:last-child {
+    padding-right: 0;
+  }
+
+  &:not(:first-child) {
+    border-left: 1px solid ${({ theme }) => theme.color.border};
+  }
+`
+
+const StatTop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 `
 
 const StatIconWrap = styled.span`

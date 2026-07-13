@@ -40,11 +40,8 @@ const Bar = styled.div`
   display: none;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: color-mix(in oklab, ${({ theme }) => theme.color.surface} 80%, transparent);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid ${({ theme }) => theme.color.border};
+  padding: 1rem 1.5rem 1rem 4rem;
+  background: transparent;
 
   @media (min-width: 1024px) {
     display: flex;
@@ -61,6 +58,11 @@ const Actions = styled.div`
   align-items: center;
   gap: 0.375rem;
   margin-left: auto;
+  padding: 0.375rem 0.625rem;
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: color-mix(in oklab, ${({ theme }) => theme.color.surface} 70%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 `
 
 const IconButton = styled.button`

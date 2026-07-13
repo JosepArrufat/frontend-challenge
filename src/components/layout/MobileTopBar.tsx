@@ -28,10 +28,7 @@ const Bar = styled.div`
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
-  background: color-mix(in oklab, ${({ theme }) => theme.color.surface} 85%, transparent);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid ${({ theme }) => theme.color.border};
+  background: transparent;
 
   @media (min-width: 1024px) {
     display: none !important;

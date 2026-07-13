@@ -5,6 +5,7 @@ import { UnitProvider } from './context/UnitContext'
 import { UserProvider } from './context/UserContext'
 import { useUser } from './hooks/useUser'
 import { FavoritesProvider } from './context/FavoritesContext'
+import { CurrentCityProvider } from './context/CurrentCityContext'
 import { BrowserRouter } from 'react-router-dom'
 import { useThemeMode } from './hooks/useThemeMode'
 import App from './App'
@@ -12,11 +13,13 @@ import App from './App'
 function AppShell() {
   const { username } = useUser()
   return (
-    <FavoritesProvider key={username} username={username}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </FavoritesProvider>
+    <CurrentCityProvider key={`current-city:${username}`} username={username}>
+      <FavoritesProvider key={`favorites:${username}`} username={username}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </FavoritesProvider>
+    </CurrentCityProvider>
   )
 }
 
