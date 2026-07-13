@@ -59,7 +59,7 @@ const PagerBtn = styled.button`
 
 const Indicator = styled.span`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   font-variant-numeric: tabular-nums;
 
   strong {

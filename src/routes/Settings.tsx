@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Settings as SettingsIcon } from 'lucide-react'
 import styled from 'styled-components'
 import { useUnit } from '../hooks/useUnit'
 import { useUser } from '../hooks/useUser'
 import { useCurrentCity } from '../hooks/useCurrentCity'
+import { DEFAULT_USERNAME } from '../context/userContext'
 import { MobileTopBar } from '../components/layout/MobileTopBar'
 import { Search } from '../components/search/Search'
 
@@ -13,36 +13,36 @@ export function Settings() {
   const { currentCity, setCurrentCity, clearCurrentCity } = useCurrentCity()
   const [nameInput, setNameInput] = useState(username)
   const inputChanged = nameInput.trim() !== username
+  const isGuest = username === DEFAULT_USERNAME
 
   return (
     <Page>
       <MobileTopBar center={<MobileTitle>Settings</MobileTitle>} />
       <Content>
-        <Mark>
-          <SettingsIcon size={28} />
-        </Mark>
         <Title>Settings</Title>
         <Subtitle>Set your name, choose a default city, and switch the temperature unit.</Subtitle>
-        <StackedRow>
-          <RowHeader>
-            <RowLabel>Current city</RowLabel>
-            <RowMeta>
-              {currentCity
-                ? `${currentCity.name}${currentCity.country ? `, ${currentCity.country}` : ''}`
-                : 'No saved city. Home will fall back to your current location when available.'}
-            </RowMeta>
-          </RowHeader>
-          <SearchWrap>
-            <Search onSelect={setCurrentCity} />
-          </SearchWrap>
-          {currentCity && (
-            <InlineAction>
-              <GhostBtn type="button" onClick={clearCurrentCity}>
-                Clear saved city
-              </GhostBtn>
-            </InlineAction>
-          )}
-        </StackedRow>
+        {!isGuest && (
+          <StackedRow>
+            <RowHeader>
+              <RowLabel>Current city</RowLabel>
+              <RowMeta>
+                {currentCity
+                  ? `${currentCity.name}${currentCity.country ? `, ${currentCity.country}` : ''}`
+                  : 'No saved city. Home will fall back to your current location when available.'}
+              </RowMeta>
+            </RowHeader>
+            <SearchWrap>
+              <Search onSelect={setCurrentCity} />
+            </SearchWrap>
+            {currentCity && (
+              <InlineAction>
+                <GhostBtn type="button" onClick={clearCurrentCity}>
+                  Clear saved city
+                </GhostBtn>
+              </InlineAction>
+            )}
+          </StackedRow>
+        )}
         <Row>
           <RowLabel>Your name</RowLabel>
           <NameInput
@@ -111,17 +111,6 @@ const Content = styled.div`
     text-align: center;
     padding: 0;
   }
-`
-
-const Mark = styled.div`
-  display: grid;
-  place-items: center;
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: ${({ theme }) => theme.radius.xl};
-  color: ${({ theme }) => theme.color.mutedForeground};
-  background: ${({ theme }) => theme.color.card};
-  border: 1px solid ${({ theme }) => theme.color.border};
 `
 
 const Title = styled.h1`

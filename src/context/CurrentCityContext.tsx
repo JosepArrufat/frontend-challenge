@@ -5,6 +5,7 @@ import {
   currentCityKey,
   type CurrentCityContextValue,
 } from './currentCityContext'
+import { DEFAULT_USERNAME } from './userContext'
 import type { City } from '../types'
 
 export interface CurrentCityProviderProps {
@@ -13,17 +14,28 @@ export interface CurrentCityProviderProps {
 }
 
 export function CurrentCityProvider({ username, children }: CurrentCityProviderProps) {
+  const isGuest = username === DEFAULT_USERNAME
   const storageKey = currentCityKey(username)
   const [currentCity, setCurrentCityState] = useState<City | null>(() =>
-    loadJSON<City | null>(storageKey, null),
+    isGuest ? null : loadJSON<City | null>(storageKey, null),
   )
 
   useEffect(() => {
+    if (isGuest) return
     saveJSON(storageKey, currentCity)
-  }, [storageKey, currentCity])
+  }, [storageKey, currentCity, isGuest])
 
-  const setCurrentCity = useCallback((city: City | null) => setCurrentCityState(city), [])
-  const clearCurrentCity = useCallback(() => setCurrentCityState(null), [])
+  const setCurrentCity = useCallback(
+    (city: City | null) => {
+      if (isGuest) return
+      setCurrentCityState(city)
+    },
+    [isGuest],
+  )
+  const clearCurrentCity = useCallback(() => {
+    if (isGuest) return
+    setCurrentCityState(null)
+  }, [isGuest])
 
   const value = useMemo<CurrentCityContextValue>(
     () => ({ currentCity, setCurrentCity, clearCurrentCity }),

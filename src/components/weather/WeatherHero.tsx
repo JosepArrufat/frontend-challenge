@@ -31,13 +31,15 @@ export function WeatherHero({ city, current, timezone, sunrise, sunset }: Weathe
     <Panel>
       <HeaderRow>
         <PlaceInfo>
-          <CityName>{city.name}</CityName>
+          <CityNameRow>
+            <CityName>{city.name}</CityName>
+            <FavoriteButton city={city} iconOnly />
+          </CityNameRow>
           <DateTime>
             {currentWeekday(timezone)} · {formatCurrentTime(timezone)}
           </DateTime>
         </PlaceInfo>
         <HeaderActions>
-          <FavoriteButton city={city} />
           <BigIcon name={info.icon} size={64} />
         </HeaderActions>
       </HeaderRow>
@@ -194,6 +196,13 @@ const PlaceInfo = styled.div`
   min-width: 0;
 `
 
+const CityNameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+`
+
 const CityName = styled.h2`
   font-size: clamp(1.25rem, 4vw, 1.5rem);
   font-weight: 700;
@@ -201,11 +210,12 @@ const CityName = styled.h2`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 `
 
 const DateTime = styled.span`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const BigIcon = styled(WeatherIcon)`
@@ -243,7 +253,7 @@ const TempMeta = styled.div`
 
 const FeelsLike = styled.span`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const Condition = styled.span`
@@ -293,7 +303,7 @@ const StatLabel = styled.span`
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const StatValue = styled.span`
@@ -341,7 +351,7 @@ const DetailLabel = styled.span`
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   text-align: center;
 `
 
@@ -353,5 +363,5 @@ const DetailValue = styled.span`
 
 const DetailSub = styled.span`
   font-size: 0.6875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
 `

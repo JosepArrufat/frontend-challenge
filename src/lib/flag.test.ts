@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { flagEmoji } from '../../lib/flag'
+import { flagEmoji } from './flag'
 
 describe('flag helpers', () => {
   describe('flagEmoji', () => {

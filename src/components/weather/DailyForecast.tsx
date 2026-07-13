@@ -111,7 +111,7 @@ const Heading = styled.h3`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const RowList = styled.div`
@@ -163,7 +163,7 @@ const DayName = styled.span`
 
 const DayDate = styled.span`
   font-size: 0.75rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   font-variant-numeric: tabular-nums;
 
   @media (max-width: 480px) {
@@ -190,7 +190,7 @@ const RowIcon = styled(WeatherIcon)`
 
 const MinTemp = styled.span`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   font-variant-numeric: tabular-nums;
   width: 2.75rem;
   text-align: right;

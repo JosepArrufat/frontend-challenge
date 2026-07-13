@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Menu } from 'lucide-react'
 import { Routes, Route } from 'react-router-dom'
 import styled from 'styled-components'
 import { Sidebar } from './components/layout/Sidebar'
@@ -28,20 +27,11 @@ export default function App() {
       <Shell>
         <Sidebar
           $open={sidebarOpen}
-          onClose={() => {
-            if (window.innerWidth < 1024) setSidebarOpen(false)
-          }}
+          onClose={() => setSidebarOpen(false)}
+          onOpen={() => setSidebarOpen(true)}
         />
         {sidebarOpen && <Backdrop onClick={() => setSidebarOpen(false)} aria-hidden />}
         <Main>
-          <ToggleBtn
-            type="button"
-            $shifted={sidebarOpen}
-            aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-            onClick={() => setSidebarOpen((prev) => !prev)}
-          >
-            <Menu size={20} />
-          </ToggleBtn>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/map" element={<WorldMap />} />
@@ -71,33 +61,6 @@ const Backdrop = styled.div`
 
   @media (min-width: 1024px) {
     display: none;
-  }
-`
-
-const ToggleBtn = styled.button<{ $shifted: boolean }>`
-  display: none;
-  position: fixed;
-  top: 1.25rem;
-  left: 0.75rem;
-  z-index: 60;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: ${({ theme }) => theme.radius.md};
-  color: ${({ theme }) => theme.color.foreground};
-  background: color-mix(in oklab, ${({ theme }) => theme.color.surface} 70%, transparent);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid ${({ theme }) => theme.color.border};
-  transition: left 0.25s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.color.accent};
-  }
-
-  @media (min-width: 1024px) {
-    display: grid;
-    left: ${({ $shifted }) => ($shifted ? '16.75rem' : '0.75rem')};
   }
 `
 

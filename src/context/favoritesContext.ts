@@ -1,5 +1,6 @@
 import { createContext } from 'react'
 import type { FavoriteCity } from '../types'
+import { cityKey } from '../lib/city'
 
 export interface FavoritesState {
   items: FavoriteCity[]
@@ -7,15 +8,15 @@ export interface FavoritesState {
 
 export type FavoritesAction =
   | { type: 'add'; city: FavoriteCity }
-  | { type: 'remove'; id: number }
+  | { type: 'remove'; key: string }
   | { type: 'toggle'; city: FavoriteCity }
 
 export interface FavoritesContextValue {
   favorites: FavoriteCity[]
   addFavorite: (city: FavoriteCity) => void
-  removeFavorite: (id: number) => void
+  removeFavorite: (key: string) => void
   toggleFavorite: (city: FavoriteCity) => void
-  isFavorite: (id: number) => boolean
+  isFavorite: (city: FavoriteCity) => boolean
 }
 
 export const FavoritesContext = createContext<FavoritesContextValue | undefined>(undefined)
@@ -23,15 +24,17 @@ export const FavoritesContext = createContext<FavoritesContextValue | undefined>
 export function favoritesReducer(state: FavoritesState, action: FavoritesAction): FavoritesState {
   switch (action.type) {
     case 'add':
-      if (state.items.some((city) => city.id === action.city.id)) return state
+      if (state.items.some((city) => cityKey(city) === cityKey(action.city))) return state
       return { items: [...state.items, action.city] }
     case 'remove':
-      return { items: state.items.filter((city) => city.id !== action.id) }
-    case 'toggle':
-      if (state.items.some((city) => city.id === action.city.id)) {
-        return { items: state.items.filter((city) => city.id !== action.city.id) }
+      return { items: state.items.filter((city) => cityKey(city) !== action.key) }
+    case 'toggle': {
+      const key = cityKey(action.city)
+      if (state.items.some((city) => cityKey(city) === key)) {
+        return { items: state.items.filter((city) => cityKey(city) !== key) }
       }
       return { items: [...state.items, action.city] }
+    }
     default:
       return state
   }

@@ -40,7 +40,7 @@ const Bar = styled.div`
   display: none;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.5rem 1rem 4rem;
+  padding: 1rem 1.5rem;
   background: transparent;
 
   @media (min-width: 1024px) {

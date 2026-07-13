@@ -14,6 +14,8 @@ import { FavoriteButton } from '../components/favorites/FavoriteButton'
 import { useCurrentCity } from '../hooks/useCurrentCity'
 import { useGeolocatedCity } from '../hooks/useGeolocatedCity'
 import { useForecast } from '../hooks/useForecast'
+import { useUser } from '../hooks/useUser'
+import { DEFAULT_USERNAME } from '../context/userContext'
 import { getHourlySlice, getDailyEntries, getTodaySunTimes } from '../lib/forecast'
 import type { City } from '../types'
 
@@ -24,6 +26,8 @@ interface LocationState {
 export function Home() {
   const location = useLocation()
   const routeCity = (location.state as LocationState | null)?.city ?? null
+  const { username } = useUser()
+  const isGuest = username === DEFAULT_USERNAME
   const { currentCity, setCurrentCity } = useCurrentCity()
   const shouldAutoDetectCity = !routeCity && !currentCity
   const { city: detectedCity, status: detectedCityStatus } = useGeolocatedCity(shouldAutoDetectCity)
@@ -32,13 +36,17 @@ export function Home() {
     selectedCity === undefined ? (routeCity ?? currentCity ?? detectedCity ?? null) : selectedCity
 
   useEffect(() => {
+    setSelectedCity(undefined)
+  }, [username])
+
+  useEffect(() => {
     if (routeCity || currentCity || !detectedCity) return
     setSelectedCity((prev) => (prev === undefined ? detectedCity : prev))
   }, [routeCity, currentCity, detectedCity])
 
   useEffect(() => {
-    if (city) setCurrentCity(city)
-  }, [city, setCurrentCity])
+    if (city && !isGuest) setCurrentCity(city)
+  }, [city, setCurrentCity, isGuest])
 
   const forecast = useForecast(city ? { latitude: city.latitude, longitude: city.longitude } : null)
 
@@ -84,13 +92,26 @@ export function Home() {
         <>
           <MobileTopBar
             center={
-              <MobileCityInfo onClick={() => setSelectedCity(null)}>
-                <MapPin size={14} />
+              <MobileCityInfo
+                role="button"
+                tabIndex={0}
+                aria-label={`Change city from ${city.name}`}
+                onClick={() => setSelectedCity(null)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedCity(null)
+                  }
+                }}
+              >
+                <MapPin size={14} aria-hidden />
                 <MobileCityName>{city.name}</MobileCityName>
                 {city.country && <MobileCityCountry>, {city.country}</MobileCityCountry>}
+                <StarSlot onClick={(e) => e.stopPropagation()}>
+                  <FavoriteButton city={city} iconOnly />
+                </StarSlot>
               </MobileCityInfo>
             }
-            right={<FavoriteButton city={city} />}
           />
           <TopBar onSelectCity={setSelectedCity} />
           <Content>
@@ -140,7 +161,7 @@ const MobileSearch = styled.div`
   min-width: 0;
 `
 
-const MobileCityInfo = styled.button`
+const MobileCityInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.3125rem;
@@ -149,6 +170,12 @@ const MobileCityInfo = styled.button`
   border: none;
   min-width: 0;
   overflow: hidden;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.color.ring};
+    outline-offset: 2px;
+  }
 `
 
 const MobileCityName = styled.span`
@@ -159,10 +186,18 @@ const MobileCityName = styled.span`
 
 const MobileCityCountry = styled.span`
   font-size: 0.8125rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+`
+
+const StarSlot = styled.span`
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 `
 
 const Page = styled.div`
@@ -180,7 +215,13 @@ const Page = styled.div`
     z-index: -2;
     background-image:
       radial-gradient(circle at top, oklch(0.76 0.06 80 / 0.16), transparent 34%),
-      url('/beach.avif');
+      url('/islandFallback.jpeg');
+    background-image:
+      radial-gradient(circle at top, oklch(0.76 0.06 80 / 0.16), transparent 34%),
+      image-set(
+        url('/island2.jpeg') type('image/jpeg') 1x,
+        url('/islandFallback.jpeg') type('image/jpeg') 1x
+      );
     background-position:
       center top,
       center center;
@@ -202,7 +243,6 @@ const Page = styled.div`
 
   > * {
     position: relative;
-    z-index: 1;
   }
 `
 
@@ -247,18 +287,24 @@ const Title = styled.h1`
   font-size: clamp(1.5rem, 4vw, 2.25rem);
   font-weight: 700;
   letter-spacing: -0.03em;
+  text-shadow:
+    0 1px 12px oklch(0 0 0 / 0.55),
+    0 2px 32px oklch(0 0 0 / 0.35);
 `
 
 const Subtitle = styled.p`
   max-width: 26rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   font-size: 0.9375rem;
+  text-shadow: 0 1px 8px oklch(0 0 0 / 0.5);
 `
 
 const LocationHint = styled.p`
   max-width: 28rem;
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
+  opacity: 0.8;
+  text-shadow: 0 1px 8px oklch(0 0 0 / 0.5);
 `
 
 const SearchSlot = styled.div`

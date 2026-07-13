@@ -11,6 +11,7 @@ import { getDailyEntries } from '../../lib/forecast'
 import { WeatherIcon } from '../ui/WeatherIcon'
 import { Skeleton } from '../ui/Skeleton'
 import { flagEmoji } from '../../lib/flag'
+import { cityKey } from '../../lib/city'
 
 export interface FavoriteCardProps {
   city: City
@@ -76,7 +77,7 @@ export function FavoriteCard({ city, variant = 'desktop' }: FavoriteCardProps) {
             aria-label={`Remove ${city.name} from favorites`}
             onClick={(e) => {
               e.stopPropagation()
-              removeFavorite(city.id)
+              removeFavorite(cityKey(city))
             }}
           >
             <Trash2 size={18} aria-hidden />
@@ -146,7 +147,7 @@ export function FavoriteCard({ city, variant = 'desktop' }: FavoriteCardProps) {
           aria-label={`Remove ${city.name} from favorites`}
           onClick={(e) => {
             e.stopPropagation()
-            removeFavorite(city.id)
+            removeFavorite(cityKey(city))
           }}
         >
           <Trash2 size={16} aria-hidden />

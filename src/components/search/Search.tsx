@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Search as SearchIcon, X } from 'lucide-react'
-import styled, { keyframes } from 'styled-components'
+import { useCombobox } from 'downshift'
+import styled, { css, keyframes } from 'styled-components'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useGeocodingSearch } from '../../hooks/useGeocodingSearch'
 import { MIN_SEARCH_LENGTH, SEARCH_DEBOUNCE_MS } from '../../constants'
@@ -8,11 +9,16 @@ import type { City } from '../../types'
 import { Spinner } from '../ui/Spinner'
 import { ErrorMessage } from '../ui/ErrorMessage'
 import { EmptyState } from '../ui/EmptyState'
-import { SearchSuggestions } from './SearchSuggestions'
+import { flagEmoji } from '../../lib/flag'
 
 const shimmer = keyframes`
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
+`
+
+const enter = keyframes`
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 `
 
 const Field = styled.div`
@@ -30,7 +36,7 @@ const InputWrap = styled.div`
 const SearchGlyph = styled(SearchIcon)`
   position: absolute;
   left: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   pointer-events: none;
 `
 
@@ -49,7 +55,20 @@ const Input = styled.input`
     box-shadow 0.15s ease;
 
   &::placeholder {
-    color: ${({ theme }) => theme.color.mutedForeground};
+    color: ${({ theme }) => theme.color.foreground};
+  }
+
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
+
+  &::-ms-clear,
+  &::-ms-reveal {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   &:hover {
@@ -76,7 +95,7 @@ const ClearButton = styled.button`
   width: 1.75rem;
   height: 1.75rem;
   border-radius: ${({ theme }) => theme.radius.full};
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   transition:
     color 0.15s ease,
     background 0.15s ease;
@@ -87,35 +106,23 @@ const ClearButton = styled.button`
   }
 `
 
-const Popover = styled.div`
+const MenuWrap = styled.div<{ $open: boolean }>`
   position: absolute;
   top: calc(100% + 0.5rem);
   left: 0;
   right: 0;
   z-index: 50;
   overflow: hidden;
-  background: color-mix(
-    in oklab,
-    ${({ theme }) => theme.color.popover} 78%,
-    ${({ theme }) => theme.color.background}
-  );
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: ${({ theme }) => theme.color.background};
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.lg};
   box-shadow: ${({ theme }) => theme.shadow.popover};
-  animation: enter 0.14s ease-out;
-
-  @keyframes enter {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  display: ${({ $open }) => ($open ? 'block' : 'none')};
+  ${({ $open }) =>
+    $open &&
+    css`
+      animation: ${enter} 0.14s ease-out;
+    `}
 `
 
 const LoadingBar = styled.div`
@@ -145,7 +152,58 @@ const CenterStatus = styled.div`
   gap: 0.5rem;
   padding: 1.25rem;
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
+`
+
+const ErrorWrap = styled.div`
+  padding: 0.75rem;
+`
+
+const Listbox = styled.ul<{ $hasItems: boolean }>`
+  list-style: none;
+  margin: 0;
+  padding: ${({ $hasItems }) => ($hasItems ? '0.375rem' : '0')};
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+`
+
+const Option = styled.li<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: ${({ theme }) => theme.radius.md};
+  cursor: pointer;
+  background: ${({ $active, theme }) => ($active ? theme.color.secondary : 'transparent')};
+  box-shadow: ${({ $active, theme }) => ($active ? `inset 0 0 0 1px ${theme.color.border}` : 'none')};
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.color.accent};
+  }
+`
+
+const Flag = styled.span`
+  font-size: 1.125rem;
+  line-height: 1;
+`
+
+const Name = styled.span`
+  font-size: 0.9375rem;
+  color: ${({ theme }) => theme.color.foreground};
+
+  mark {
+    background: transparent;
+    color: ${({ theme }) => theme.color.primary};
+    font-weight: 600;
+  }
+`
+
+const Country = styled.span`
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const VisuallyHidden = styled.span`
@@ -160,94 +218,87 @@ const VisuallyHidden = styled.span`
   border: 0;
 `
 
+interface MatchPart {
+  text: string
+  match: boolean
+}
+
+function splitMatch(text: string, query: string): MatchPart[] {
+  if (!query) return [{ text, match: false }]
+  const lower = text.toLowerCase()
+  const q = query.toLowerCase()
+  const parts: MatchPart[] = []
+  let i = 0
+  while (i < text.length) {
+    const idx = lower.indexOf(q, i)
+    if (idx === -1) {
+      parts.push({ text: text.slice(i), match: false })
+      break
+    }
+    if (idx > i) parts.push({ text: text.slice(i, idx), match: false })
+    parts.push({ text: text.slice(idx, idx + q.length), match: true })
+    i = idx + q.length
+  }
+  return parts
+}
+
 export interface SearchProps {
   onSelect: (city: City) => void
 }
 
 export function Search({ onSelect }: SearchProps) {
-  const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
-
-  const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const debouncedQuery = useDebounce(query, SEARCH_DEBOUNCE_MS)
+  const [inputValue, setInputValue] = useState('')
+  const debouncedQuery = useDebounce(inputValue, SEARCH_DEBOUNCE_MS)
   const result = useGeocodingSearch(debouncedQuery)
   const cities = result.data ?? []
 
-  const reactId = useId()
-  const listboxId = `${reactId}-listbox`
-  const optionId = (index: number) => `${reactId}-opt-${index}`
-
   const queryValid = debouncedQuery.trim().length >= MIN_SEARCH_LENGTH
-  const canShow = open && queryValid
 
-  const safeActiveIndex: number | null =
-    activeIndex === null || cities.length === 0
-      ? null
-      : activeIndex < cities.length
-        ? activeIndex
-        : 0
-
-  useEffect(() => {
-    function onPointerDown(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
+  const {
+    isOpen,
+    reset,
+    getMenuProps,
+    getInputProps,
+    getItemProps,
+    getLabelProps,
+    highlightedIndex,
+  } = useCombobox<City>({
+    items: cities,
+    inputValue,
+    onInputValueChange: ({ inputValue }) => setInputValue(inputValue),
+    onSelectedItemChange: ({ selectedItem }) => {
+      if (selectedItem) {
+        onSelect(selectedItem)
+        reset()
       }
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    return () => document.removeEventListener('mousedown', onPointerDown)
-  }, [])
-
-  function selectCity(city: City) {
-    onSelect(city)
-    setQuery('')
-    setActiveIndex(null)
-    setOpen(false)
-    inputRef.current?.focus()
-  }
-
-  function clear() {
-    setQuery('')
-    setActiveIndex(null)
-    setOpen(false)
-    inputRef.current?.focus()
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'ArrowDown') {
-      if (!cities.length) return
-      e.preventDefault()
-      setOpen(true)
-      const base = safeActiveIndex === null ? -1 : safeActiveIndex
-      setActiveIndex(Math.min(base + 1, cities.length - 1))
-      return
-    }
-    if (e.key === 'ArrowUp') {
-      if (!cities.length) return
-      e.preventDefault()
-      setOpen(true)
-      const base = safeActiveIndex === null ? cities.length : safeActiveIndex
-      setActiveIndex(Math.max(base - 1, 0))
-      return
-    }
-    if (e.key === 'Enter') {
-      if (canShow && cities.length > 0) {
-        e.preventDefault()
-        selectCity(cities[safeActiveIndex ?? 0])
+    },
+    itemToString: (item) => item?.name ?? '',
+    stateReducer: (state, { type, changes }) => {
+      if (type === useCombobox.stateChangeTypes.InputBlur) {
+        return { isOpen: false, highlightedIndex: -1 }
       }
-      return
-    }
-    if (e.key === 'Escape') {
-      if (canShow) {
-        e.preventDefault()
-        setOpen(false)
-        setActiveIndex(null)
+      if (
+        type === useCombobox.stateChangeTypes.InputKeyDownEnter &&
+        state.isOpen &&
+        cities.length > 0 &&
+        state.highlightedIndex < 0
+      ) {
+        return {
+          ...changes,
+          selectedItem: cities[0],
+          inputValue: '',
+          isOpen: false,
+          highlightedIndex: -1,
+        }
       }
-      return
-    }
-  }
+      if (changes.selectedItem) {
+        return { ...changes, inputValue: '' }
+      }
+      return changes
+    },
+  })
+
+  const canShow = isOpen && queryValid
 
   const status = result.isLoading
     ? 'Searching…'
@@ -259,39 +310,24 @@ export function Search({ onSelect }: SearchProps) {
           ? `${cities.length} ${cities.length === 1 ? 'city' : 'cities'} found`
           : ''
 
+  const trimmedQuery = debouncedQuery.trim()
+
   return (
-    <Field ref={containerRef}>
-      <VisuallyHidden as="label" htmlFor={`${reactId}-input`}>
+    <Field>
+      <VisuallyHidden as="label" {...getLabelProps()}>
         Search for a city
       </VisuallyHidden>
       <InputWrap>
         <SearchGlyph size={18} aria-hidden />
         <Input
-          id={`${reactId}-input`}
-          ref={inputRef}
-          type="search"
-          role="combobox"
-          aria-expanded={canShow}
-          aria-controls={listboxId}
-          aria-autocomplete="list"
-          aria-activedescendant={
-            canShow && safeActiveIndex !== null ? optionId(safeActiveIndex) : undefined
-          }
-          placeholder="Search a city…"
-          autoComplete="off"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            setActiveIndex(null)
-            setOpen(true)
-          }}
-          onKeyDown={handleKeyDown}
-          onFocus={() => {
-            if (queryValid) setOpen(true)
-          }}
+          {...getInputProps({
+            type: 'search',
+            placeholder: 'Search a city…',
+            autoComplete: 'off',
+          })}
         />
-        {query.length > 0 && (
-          <ClearButton type="button" aria-label="Clear search" onClick={clear}>
+        {inputValue.length > 0 && (
+          <ClearButton type="button" aria-label="Clear search" onClick={reset}>
             <X size={16} aria-hidden />
           </ClearButton>
         )}
@@ -301,40 +337,53 @@ export function Search({ onSelect }: SearchProps) {
         {status}
       </VisuallyHidden>
 
-      {canShow && (
-        <Popover>
-          {result.isLoading && <LoadingBar aria-hidden />}
-          {result.isError ? (
-            <div style={{ padding: '0.75rem' }}>
-              <ErrorMessage
-                message="Could not load cities. Check your connection and try again."
-                onRetry={() => result.refetch()}
-              />
-            </div>
-          ) : result.isLoading && cities.length === 0 ? (
-            <CenterStatus>
-              <Spinner label="Searching for cities" />
-              Searching…
-            </CenterStatus>
-          ) : result.isSuccess && cities.length === 0 ? (
-            <EmptyState
-              icon={<SearchIcon size={20} />}
-              title={`No cities found for “${debouncedQuery.trim()}”`}
-              description="Check the spelling or try a different city name."
+      <MenuWrap $open={canShow}>
+        {canShow && result.isLoading && <LoadingBar aria-hidden />}
+        {canShow && result.isError ? (
+          <ErrorWrap>
+            <ErrorMessage
+              message="Could not load cities. Check your connection and try again."
+              onRetry={() => result.refetch()}
             />
-          ) : cities.length > 0 ? (
-            <SearchSuggestions
-              cities={cities}
-              query={debouncedQuery.trim()}
-              activeIndex={safeActiveIndex}
-              listboxId={listboxId}
-              optionId={optionId}
-              onSelect={selectCity}
-              onHover={setActiveIndex}
-            />
-          ) : null}
-        </Popover>
-      )}
+          </ErrorWrap>
+        ) : canShow && result.isLoading && cities.length === 0 ? (
+          <CenterStatus>
+            <Spinner label="Searching for cities" />
+            Searching…
+          </CenterStatus>
+        ) : canShow && result.isSuccess && cities.length === 0 ? (
+          <EmptyState
+            icon={<SearchIcon size={20} />}
+            title={`No cities found for “${trimmedQuery}”`}
+            description="Check the spelling or try a different city name."
+          />
+        ) : null}
+
+        <Listbox $hasItems={cities.length > 0} {...getMenuProps()}>
+          {cities.map((city, index) => {
+            const parts = splitMatch(city.name, trimmedQuery)
+            return (
+              <Option
+                key={city.id}
+                $active={highlightedIndex === index}
+                {...getItemProps({ item: city, index })}
+              >
+                <Flag aria-hidden>{flagEmoji(city.countryCode)}</Flag>
+                <Name>
+                  {parts.map((part, i) =>
+                    part.match ? (
+                      <mark key={i}>{part.text}</mark>
+                    ) : (
+                      <span key={i}>{part.text}</span>
+                    ),
+                  )}
+                </Name>
+                <Country>{city.country}</Country>
+              </Option>
+            )
+          })}
+        </Listbox>
+      </MenuWrap>
     </Field>
   )
 }

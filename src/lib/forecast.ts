@@ -25,6 +25,7 @@ export async function getForecast(
   })
 
   const data = await fetchJson<ForecastResponse>(`${FORECAST_URL}?${params.toString()}`, { signal })
+
   return {
     timezone: data.timezone,
     current: {

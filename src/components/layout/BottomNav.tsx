@@ -1,30 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Globe, Star, Bell, Settings } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import styled from 'styled-components'
-
-interface TabItem {
-  to: string
-  label: string
-  icon: LucideIcon
-  end?: boolean
-}
-
-const TABS: TabItem[] = [
-  { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/map', label: 'Map', icon: Globe },
-  { to: '/favorites', label: 'Favs', icon: Star },
-  { to: '/alerts', label: 'Alerts', icon: Bell },
-  { to: '/settings', label: 'Settings', icon: Settings },
-]
+import { NAV_ITEMS } from '../../constants/navItems'
 
 export function BottomNav() {
   return (
     <Bar>
-      {TABS.map(({ to, label, icon: Icon, end }) => (
+      {NAV_ITEMS.map(({ to, shortLabel, icon: Icon, end }) => (
         <Tab key={to} to={to} end={end}>
           <Icon size={20} />
-          <TabLabel>{label}</TabLabel>
+          <TabLabel>{shortLabel}</TabLabel>
         </Tab>
       ))}
     </Bar>

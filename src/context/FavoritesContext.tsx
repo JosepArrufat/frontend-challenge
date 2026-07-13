@@ -6,6 +6,7 @@ import {
   type FavoritesContextValue,
 } from './favoritesContext'
 import type { FavoriteCity } from '../types'
+import { cityKey } from '../lib/city'
 import { loadJSON, saveJSON } from '../lib/storage'
 
 export interface FavoritesProviderProps {
@@ -27,9 +28,9 @@ export function FavoritesProvider({ username, children }: FavoritesProviderProps
     () => ({
       favorites: state.items,
       addFavorite: (city) => dispatch({ type: 'add', city }),
-      removeFavorite: (id) => dispatch({ type: 'remove', id }),
+      removeFavorite: (key) => dispatch({ type: 'remove', key }),
       toggleFavorite: (city) => dispatch({ type: 'toggle', city }),
-      isFavorite: (id) => state.items.some((city) => city.id === id),
+      isFavorite: (city) => state.items.some((item) => cityKey(item) === cityKey(city)),
     }),
     [state.items],
   )

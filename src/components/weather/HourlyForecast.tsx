@@ -75,7 +75,7 @@ const Heading = styled.h3`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const Strip = styled.div`
@@ -105,7 +105,7 @@ const Chip = styled.div<{ $now: boolean }>`
 const Time = styled.span<{ $now: boolean }>`
   font-size: 0.75rem;
   font-weight: ${({ $now }) => ($now ? 700 : 500)};
-  color: ${({ $now, theme }) => ($now ? theme.color.primary : theme.color.mutedForeground)};
+  color: ${({ $now, theme }) => ($now ? theme.color.primary : theme.color.foreground)};
   font-variant-numeric: tabular-nums;
 `
 

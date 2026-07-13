@@ -50,6 +50,7 @@ const LoggedIn = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: ${({ theme }) => theme.color.foreground};
 `
 
 const Greeting = styled.span`
@@ -64,7 +65,7 @@ const LogoutBtn = styled.button`
   width: 2rem;
   height: 2rem;
   border-radius: ${({ theme }) => theme.radius.md};
-  color: ${({ theme }) => theme.color.mutedForeground};
+  color: ${({ theme }) => theme.color.foreground};
   transition:
     color 0.15s ease,
     background 0.15s ease;
@@ -95,7 +96,7 @@ const NameField = styled.input`
   }
 
   &::placeholder {
-    color: ${({ theme }) => theme.color.mutedForeground};
+    color: ${({ theme }) => theme.color.foreground};
   }
 
   &:focus-visible {
@@ -114,12 +115,11 @@ const SubmitBtn = styled.button`
   border-radius: ${({ theme }) => theme.radius.md};
   font-size: 0.8125rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.color.primaryForeground};
+  color: ${({ theme }) => theme.color.foreground};
   background: ${({ theme }) => theme.color.primary};
   transition: opacity 0.15s ease;
 
   &:disabled {
-    opacity: 0.4;
     cursor: not-allowed;
   }
 `

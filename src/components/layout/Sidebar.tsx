@@ -1,60 +1,73 @@
 import { NavLink } from 'react-router-dom'
-import { CloudSun, Home, Globe, Star, Bell, Settings, User } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { CloudSun, User, X } from 'lucide-react'
 import styled from 'styled-components'
 import { useUnit } from '../../hooks/useUnit'
 import { useUser } from '../../hooks/useUser'
 import type { TempUnit } from '../../context/unitContext'
-
-interface NavItem {
-  to: string
-  label: string
-  icon: LucideIcon
-  end?: boolean
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/map', label: 'World Map', icon: Globe },
-  { to: '/favorites', label: 'Favorites', icon: Star },
-  { to: '/alerts', label: 'Alerts', icon: Bell },
-  { to: '/settings', label: 'Settings', icon: Settings },
-]
+import { NAV_ITEMS } from '../../constants/navItems'
 
 export interface SidebarProps {
   $open: boolean
   onClose: () => void
+  onOpen: () => void
 }
 
-export function Sidebar({ $open, onClose }: SidebarProps) {
+export function Sidebar({ $open, onClose, onOpen }: SidebarProps) {
   const { unit, setUnit } = useUnit()
   const { username } = useUser()
+
+  function handleNavClick() {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) onClose()
+  }
+
   return (
     <Aside $open={$open}>
-      <Brand>
-        <BrandMark>
-          <CloudSun size={22} />
-        </BrandMark>
-        <BrandName>Weather</BrandName>
-      </Brand>
+      <Header>
+        {$open ? (
+          <Brand>
+            <BrandMark>
+              <CloudSun size={22} />
+            </BrandMark>
+            <BrandName>Weather</BrandName>
+          </Brand>
+        ) : (
+          <BrandMarkBtn type="button" onClick={onOpen} aria-label="Open sidebar">
+            <CloudSun size={22} />
+          </BrandMarkBtn>
+        )}
+        {$open && (
+          <CloseBtn type="button" onClick={onClose} aria-label="Close sidebar">
+            <X size={18} />
+          </CloseBtn>
+        )}
+      </Header>
 
       <Nav>
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-          <StyledLink key={to} to={to} end={end} onClick={onClose}>
+          <StyledLink
+            key={to}
+            to={to}
+            end={end}
+            $open={$open}
+            onClick={handleNavClick}
+            title={!$open ? label : undefined}
+          >
             <Icon size={18} />
-            <span>{label}</span>
+            <Label $open={$open}>{label}</Label>
           </StyledLink>
         ))}
       </Nav>
 
-      <UnitToggle value={unit} onChange={setUnit} />
+      {$open && <UnitToggle value={unit} onChange={setUnit} />}
 
-      <Profile>
-        <Avatar>
-          <User size={18} />
-        </Avatar>
-        <ProfileName>{username}</ProfileName>
-      </Profile>
+      {$open && (
+        <Profile>
+          <Avatar>
+            <User size={18} />
+          </Avatar>
+          <ProfileName>{username}</ProfileName>
+        </Profile>
+      )}
     </Aside>
   )
 }
@@ -111,23 +124,34 @@ const Aside = styled.aside<{ $open: boolean }>`
   height: 100vh;
   z-index: 50;
   transform: translateX(-100%);
-  transition: transform 0.25s ease;
 
   ${({ $open }) => $open && 'transform: translateX(0);'}
 
   @media (min-width: 1024px) {
     position: sticky;
     transform: none;
-    transition: none;
-    ${({ $open }) => !$open && 'display: none;'}
+    height: 100vh;
+    width: 4rem;
+    padding: 1.5rem 0.5rem;
+    gap: 1rem;
+
+    ${({ $open }) => $open && 'width: 16rem; padding: 1.5rem 1rem; gap: 1.5rem;'}
   }
+`
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.25rem;
 `
 
 const Brand = styled.div`
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  padding: 0 0.5rem;
+  padding: 0 0.25rem;
 `
 
 const BrandMark = styled.span`
@@ -135,6 +159,7 @@ const BrandMark = styled.span`
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
+  flex-shrink: 0;
   border-radius: ${({ theme }) => theme.radius.md};
   color: ${({ theme }) => theme.color.primaryForeground};
   background: linear-gradient(160deg, oklch(0.72 0.2 256), oklch(0.5 0.2 256));
@@ -143,10 +168,58 @@ const BrandMark = styled.span`
     inset 0 1px 0 oklch(1 0 0 / 0.28);
 `
 
+const BrandMarkBtn = styled.button`
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 auto;
+  flex-shrink: 0;
+  border-radius: ${({ theme }) => theme.radius.md};
+  color: ${({ theme }) => theme.color.primaryForeground};
+  background: linear-gradient(160deg, oklch(0.72 0.2 256), oklch(0.5 0.2 256));
+  box-shadow:
+    ${({ theme }) => theme.glow.primary},
+    inset 0 1px 0 oklch(1 0 0 / 0.28);
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.color.ring};
+    outline-offset: 2px;
+  }
+`
+
 const BrandName = styled.span`
   font-size: 1.0625rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+`
+
+const CloseBtn = styled.button`
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: ${({ theme }) => theme.radius.md};
+  color: ${({ theme }) => theme.color.mutedForeground};
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.color.foreground};
+    background: ${({ theme }) => theme.color.accent};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.color.ring};
+    outline-offset: 2px;
+  }
 `
 
 const Nav = styled.nav`
@@ -156,7 +229,7 @@ const Nav = styled.nav`
   margin-top: 0.5rem;
 `
 
-const StyledLink = styled(NavLink)`
+const StyledLink = styled(NavLink)<{ $open: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -169,6 +242,8 @@ const StyledLink = styled(NavLink)`
     color 0.15s ease,
     background 0.15s ease;
 
+  ${({ $open }) => !$open && 'justify-content: center; padding: 0.625rem 0; gap: 0;'}
+
   &:hover {
     color: ${({ theme }) => theme.color.foreground};
     background: ${({ theme }) => theme.color.accent};
@@ -180,6 +255,10 @@ const StyledLink = styled(NavLink)`
     box-shadow: inset 0 0 0 1px
       color-mix(in oklab, ${({ theme }) => theme.color.primary} 45%, transparent);
   }
+`
+
+const Label = styled.span<{ $open: boolean }>`
+  display: ${({ $open }) => ($open ? 'inline' : 'none')};
 `
 
 const ToggleGroup = styled.div`

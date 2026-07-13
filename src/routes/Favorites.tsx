@@ -1,38 +1,20 @@
-import { useNavigate } from 'react-router-dom'
-import { Star, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { Star, Plus, X } from 'lucide-react'
 import styled from 'styled-components'
 import { useFavorites } from '../hooks/useFavorites'
 import { useUser } from '../hooks/useUser'
+import { cityKey } from '../lib/city'
 import { FavoriteCard } from '../components/favorites/FavoriteCard'
 import { MobileTopBar } from '../components/layout/MobileTopBar'
+import { Search } from '../components/search/Search'
 
 export function Favorites() {
-  const { favorites } = useFavorites()
+  const { favorites, addFavorite } = useFavorites()
   const { username } = useUser()
-  const navigate = useNavigate()
+  const [showSearch, setShowSearch] = useState(false)
 
-  if (favorites.length === 0) {
-    return (
-      <Page>
-        <MobileTopBar
-          center={<MobileTitle>{username}'s favorites</MobileTitle>}
-          right={
-            <AddBtn onClick={() => navigate('/')} aria-label="Add a city to favorites">
-              <Plus size={20} />
-            </AddBtn>
-          }
-        />
-        <EmptyContent>
-          <Mark>
-            <Star size={28} />
-          </Mark>
-          <Title>No favorite cities yet</Title>
-          <Subtitle>
-            Save cities from the forecast view and they will appear here for quick access.
-          </Subtitle>
-        </EmptyContent>
-      </Page>
-    )
+  function handleAdd(city: Parameters<typeof addFavorite>[0]) {
+    addFavorite(city)
   }
 
   return (
@@ -40,49 +22,86 @@ export function Favorites() {
       <MobileTopBar
         center={<MobileTitle>{username}'s favorites</MobileTitle>}
         right={
-          <AddBtn onClick={() => navigate('/')} aria-label="Add a city to favorites">
-            <Plus size={20} />
-          </AddBtn>
+          <AddToggle
+            $open={showSearch}
+            onClick={() => setShowSearch((v) => !v)}
+            aria-label={showSearch ? 'Close add city search' : 'Add a city to favorites'}
+            aria-expanded={showSearch}
+          >
+            {showSearch ? <X size={20} /> : <Plus size={20} />}
+          </AddToggle>
         }
       />
       <Body>
         <Header>
-          <Title>{username}'s favorites</Title>
-          <Count>
-            {favorites.length} {favorites.length === 1 ? 'city' : 'cities'}
-          </Count>
+          <HeaderLeft>
+            <Title>{username}'s favorites</Title>
+            <Count>
+              {favorites.length} {favorites.length === 1 ? 'city' : 'cities'}
+            </Count>
+          </HeaderLeft>
+          <DesktopToggle
+            $open={showSearch}
+            onClick={() => setShowSearch((v) => !v)}
+            aria-label={showSearch ? 'Close add city search' : 'Add a city to favorites'}
+            aria-expanded={showSearch}
+          >
+            {showSearch ? <X size={18} /> : <Plus size={18} />}
+            {showSearch ? 'Close' : 'Add city'}
+          </DesktopToggle>
         </Header>
-        <MobileList>
-          {favorites.map((city) => (
-            <FavoriteCard key={city.id} city={city} variant="mobile" />
-          ))}
-        </MobileList>
-        <TableWrap>
-          <Table>
-            <thead>
-              <tr>
-                <Th scope="col" $location>
-                  Location
-                </Th>
-                <Th scope="col">Condition</Th>
-                <Th scope="col" $right>
-                  Current
-                </Th>
-                <Th scope="col" $right>
-                  Min/Max
-                </Th>
-                <Th scope="col" $center>
-                  Actions
-                </Th>
-              </tr>
-            </thead>
-            <tbody>
+
+        {showSearch && (
+          <SearchPanel>
+            <Search onSelect={handleAdd} />
+          </SearchPanel>
+        )}
+
+        {favorites.length === 0 && !showSearch ? (
+          <EmptyContent>
+            <Mark>
+              <Star size={28} />
+            </Mark>
+            <Title>No favorite cities yet</Title>
+            <Subtitle>
+              Tap the add button above to search for cities and save them here for quick access.
+            </Subtitle>
+          </EmptyContent>
+        ) : (
+          <>
+            <MobileList>
               {favorites.map((city) => (
-                <FavoriteCard key={city.id} city={city} />
+                <FavoriteCard key={cityKey(city)} city={city} variant="mobile" />
               ))}
-            </tbody>
-          </Table>
-        </TableWrap>
+            </MobileList>
+            <TableWrap>
+              <Table>
+                <thead>
+                  <tr>
+                    <Th scope="col" $location>
+                      Location
+                    </Th>
+                    <Th scope="col">Condition</Th>
+                    <Th scope="col" $right>
+                      Current
+                    </Th>
+                    <Th scope="col" $right>
+                      Min/Max
+                    </Th>
+                    <Th scope="col" $center>
+                      Actions
+                    </Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {favorites.map((city) => (
+                    <FavoriteCard key={cityKey(city)} city={city} />
+                  ))}
+                </tbody>
+              </Table>
+            </TableWrap>
+          </>
+        )}
       </Body>
     </Page>
   )
@@ -96,18 +115,61 @@ const MobileTitle = styled.span`
   text-overflow: ellipsis;
 `
 
-const AddBtn = styled.button`
+const AddToggle = styled.button<{ $open: boolean }>`
   display: grid;
   place-items: center;
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
   border-radius: ${({ theme }) => theme.radius.md};
-  color: ${({ theme }) => theme.color.primary};
-  background: color-mix(in oklab, ${({ theme }) => theme.color.primary} 14%, transparent);
+  color: ${({ $open, theme }) => ($open ? theme.color.foreground : theme.color.primary)};
+  background: ${({ $open, theme }) =>
+    $open
+      ? theme.color.secondary
+      : 'color-mix(in oklab, ' + theme.color.primary + ' 14%, transparent)'};
 
   &:active {
-    background: color-mix(in oklab, ${({ theme }) => theme.color.primary} 24%, transparent);
+    background: ${({ $open, theme }) =>
+      $open
+        ? theme.color.accent
+        : 'color-mix(in oklab, ' + theme.color.primary + ' 24%, transparent)'};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.color.ring};
+    outline-offset: 2px;
+  }
+`
+
+const DesktopToggle = styled.button<{ $open: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.875rem;
+  flex-shrink: 0;
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: ${({ $open, theme }) => ($open ? theme.color.foreground : theme.color.primary)};
+  background: ${({ $open, theme }) =>
+    $open
+      ? theme.color.secondary
+      : 'color-mix(in oklab, ' + theme.color.primary + ' 14%, transparent)'};
+  border: 1px solid ${({ $open, theme }) => ($open ? theme.color.border : 'transparent')};
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: ${({ $open, theme }) =>
+      $open
+        ? theme.color.accent
+        : 'color-mix(in oklab, ' + theme.color.primary + ' 22%, transparent)'};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.color.ring};
+    outline-offset: 2px;
   }
 `
 
@@ -134,6 +196,15 @@ const Body = styled.div`
   }
 `
 
+const SearchPanel = styled.div`
+  width: 100%;
+  max-width: 30rem;
+
+  @media (min-width: 1024px) {
+    max-width: 28rem;
+  }
+`
+
 const EmptyContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -149,9 +220,16 @@ const Header = styled.div`
 
   @media (min-width: 768px) {
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
   }
+`
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
 `
 
 const Title = styled.h1`
