@@ -42,7 +42,15 @@ Refactorización (migración a useCombobox), depuración de bugs (duplicados en 
 
 **¿Hubo sugerencias que descartaste?**
 
-Sí. La IA sugirió añadir un botón de geolocalización dentro del buscador, pero se eliminó luego para simplificar la UI y mantener solo el buscador de texto.
+Sí. La IA sugirió añadir un botón de geolocalización dentro del buscador, pero se eliminó luego para simplificar la UI y mantener solo el buscador de texto. También descarté: `setStates` innecesarios dentro de `useEffect` (preferí derivar estado durante el render o usar `useReducer` para evitar efectos en cascada y re-renders extra), el manejo de estado global con **Zustand** (React Context + `useReducer` es suficiente para la escala de esta app y evita una dependencia extra), y el manejo de **JWT** para auth (la autenticación es solo por nombre guardado en localStorage, no hay backend ni sesiones reales que proteger). Otros descartes:
+
+- **Redux Toolkit**: overkill para el estado de esta app; Context + `useReducer` basta y mantiene el bundle más liviano.
+- **Biblioteca de componentes (Material UI / shadcn)**: preferí componentes propios con styled-components para tener control total del diseño y no arrastrar estilos opuestos a los tokens oklch.
+- **Framer Motion**: las animaciones (keyframes de styled-components y transiciones CSS) cubren lo necesario sin añadir peso al bundle.
+- **Axios**: `fetch` nativo + `AbortController` es suficiente y evita una dependencia.
+- **React Hook Form**: el formulario de Settings es un solo campo de texto; `useState` es más simple que configurar RHF + Zod ahí.
+- **date-fns / dayjs**: usamos `Intl.DateTimeFormat` y `Date` nativo para todo el formato de fechas; no justifica una librería.
+- **React.lazy / code-splitting por ruta**: la app es pequeña y el bundle ya es ligero (~128 kB gzip); el split añadiría complejidad sin beneficio real.
 
 ---
 
