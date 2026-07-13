@@ -215,12 +215,12 @@ const Page = styled.div`
     z-index: -2;
     background-image:
       radial-gradient(circle at top, oklch(0.76 0.06 80 / 0.16), transparent 34%),
-      url('/islandFallback.jpeg');
+      url('${import.meta.env.BASE_URL}islandFallback.jpeg');
     background-image:
       radial-gradient(circle at top, oklch(0.76 0.06 80 / 0.16), transparent 34%),
       image-set(
-        url('/island2.jpeg') type('image/jpeg') 1x,
-        url('/islandFallback.jpeg') type('image/jpeg') 1x
+        url('${import.meta.env.BASE_URL}island2.jpeg') type('image/jpeg') 1x,
+        url('${import.meta.env.BASE_URL}islandFallback.jpeg') type('image/jpeg') 1x
       );
     background-position:
       center top,

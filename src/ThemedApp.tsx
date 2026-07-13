@@ -15,7 +15,7 @@ function AppShell() {
   return (
     <CurrentCityProvider key={`current-city:${username}`} username={username}>
       <FavoritesProvider key={`favorites:${username}`} username={username}>
-        <BrowserRouter>
+        <BrowserRouter basename="/frontend-challenge">
           <App />
         </BrowserRouter>
       </FavoritesProvider>
