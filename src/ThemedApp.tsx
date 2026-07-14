@@ -15,7 +15,7 @@ function AppShell() {
   return (
     <CurrentCityProvider key={`current-city:${username}`} username={username}>
       <FavoritesProvider key={`favorites:${username}`} username={username}>
-        <BrowserRouter basename="/frontend-challenge">
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <App />
         </BrowserRouter>
       </FavoritesProvider>
